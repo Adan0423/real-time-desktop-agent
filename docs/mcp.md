@@ -31,3 +31,6 @@ python -m rtda.mcp.server --transport stdio
 
 `capture_diagnostic` permite que un host externo valide captura real sin abrir
 la app completa. Devuelve checks, monitores, frame mas reciente y metricas.
+
+Para Claude Desktop, ver [MCPB](MCPB.md). El formato recomendado actual es
+`.mcpb`; `.dxt` queda como compatibilidad heredada.

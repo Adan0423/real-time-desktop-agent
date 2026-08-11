@@ -159,11 +159,39 @@ real-time-desktop-agent/
 
 El estado por modulo vive en [docs/PROGRESS.md](docs/PROGRESS.md) y los pendientes priorizados en [docs/TODO.md](docs/TODO.md).
 
+## Documentacion
+
+- [Arquitectura](docs/ARCHITECTURE.md)
+- [Progreso](docs/PROGRESS.md)
+- [Agentes](docs/AGENTS.md)
+- [Skills](docs/SKILLS.md)
+- [Pendientes](docs/TODO.md)
+- [Modos de uso](docs/modes.md)
+- [Captura](docs/capture.md)
+- [Overlay verde](docs/overlay.md)
+- [IA con token](docs/ai.md)
+- [MCP](docs/mcp.md)
+- [Claude Desktop MCPB](docs/MCPB.md)
+- [Contribuir](CONTRIBUTING.md)
+
 ## Complemento Claude Desktop
 
 Claude Desktop instala complementos locales arrastrando un archivo `.mcpb`. `.dxt` fue el nombre anterior del formato; Anthropic recomienda `.mcpb` para paquetes nuevos.
 
-RTDA ya incluye un manifiesto base en [packaging/mcpb/manifest.json](packaging/mcpb/manifest.json) y un entrypoint en [mcpb_server.py](mcpb_server.py). El empaquetado final requiere el CLI oficial `mcpb`.
+RTDA ya incluye un manifiesto base en [packaging/mcpb/manifest.json](packaging/mcpb/manifest.json) y un entrypoint en [mcpb_server.py](mcpb_server.py). El empaquetado se genera con el CLI oficial `mcpb`.
+
+```powershell
+.\scripts\build_mcpb.ps1
+```
+
+Build local generada:
+
+```text
+dist/real-time-desktop-agent-0.1.0.mcpb
+```
+
+El paquete local no esta firmado; para distribucion publica conviene firmarlo y
+probar instalacion en Claude Desktop.
 
 ## Licencia y Contacto
 

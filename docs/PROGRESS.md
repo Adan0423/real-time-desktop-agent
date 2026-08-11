@@ -28,7 +28,8 @@ multimodales a proveedores externos.
 | Acciones seguras | 🚧 Parcial | Motor, risk policy y dry-run; ejecucion real requiere mas hardening |
 | Agente observe-plan-act | ✅ Implementado | `AgentExecutor` rule-based |
 | MCP server | ✅ Implementado | `health`, `capture_*`, `inspect_uia`, `plan_goal`, `dry_run_action` |
-| MCPB manifest Claude | 🚧 Parcial | `packaging/mcpb/manifest.json`; falta paquete validado |
+| MCPB manifest Claude | ✅ Implementado | Manifest validado con `mcpb validate` |
+| MCPB paquete local | 🚧 Parcial | `.mcpb` generado; falta prueba manual en Claude Desktop |
 | Panel IA con token | 🚧 Parcial | OpenAI/Anthropic texto; falta imagen/frame |
 | Base de datos | ❌ No implementado | No hay modulo DB |
 | CI/CD | ❌ No implementado | No hay workflows `.github` |
@@ -61,5 +62,5 @@ Cobertura funcional actual por archivos:
 El MVP debe cerrar tres puntos:
 
 1. Enviar frame/screenshot al proveedor IA.
-2. Generar y validar un `.mcpb` instalable en Claude Desktop.
+2. Probar instalacion manual del `.mcpb` en Claude Desktop.
 3. Endurecer permisos y confirmaciones antes de acciones reales.

@@ -104,6 +104,6 @@ sequenceDiagram
 - No hay base de datos persistente.
 - No hay CI/CD ni empaquetado release automatizado.
 - El OCR real depende de una version de Python compatible con PaddlePaddle.
-- El MCPB tiene manifiesto base, pero el paquete `.mcpb` final debe validarse
-  con el CLI oficial `mcpb`.
+- El MCPB tiene manifiesto validado y paquete local generado; falta prueba
+  manual de instalacion en Claude Desktop.
 - La vision multimodal hacia OpenAI/Anthropic todavia no envia imagen/frame.
