@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "real-time-desktop-agent"
+version = "0.1.0"
+description = "RTDA Capture Engine prototype for a Windows real-time desktop vision agent."
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "numpy>=2.0",
+]
+
+[project.optional-dependencies]
+capture = [
+  "windows-capture>=2.0.1",
+]
+gui = [
+  "PySide6>=6.10",
+]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.scripts]
+rtda-capture = "rtda.app.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
