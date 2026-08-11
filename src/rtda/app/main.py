@@ -29,6 +29,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Enable later-phase OpenCV/UIA controls in the GUI. Disabled by default for Phase 1.",
     )
+    parser.add_argument(
+        "--hide-overlay",
+        action="store_true",
+        help="Hide the green capture-target overlay in GUI mode.",
+    )
     parser.add_argument("--detect-changes", action="store_true")
     parser.add_argument("--inspect-uia", action="store_true")
     parser.add_argument("--uia-window-title", default=None)
@@ -119,7 +124,12 @@ def run_headless(
     return 0
 
 
-def run_gui(config: CaptureConfig, *, enable_perception_tools: bool = False) -> int:
+def run_gui(
+    config: CaptureConfig,
+    *,
+    enable_perception_tools: bool = False,
+    show_capture_overlay: bool = True,
+) -> int:
     try:
         from PySide6.QtWidgets import QApplication
     except ImportError as exc:
@@ -131,7 +141,11 @@ def run_gui(config: CaptureConfig, *, enable_perception_tools: bool = False) -> 
     from rtda.app.dashboard import CaptureDashboard
 
     app = QApplication(sys.argv)
-    dashboard = CaptureDashboard(config, enable_perception_tools=enable_perception_tools)
+    dashboard = CaptureDashboard(
+        config,
+        enable_perception_tools=enable_perception_tools,
+        show_capture_overlay=show_capture_overlay,
+    )
     dashboard.show()
     return app.exec()
 
@@ -164,7 +178,11 @@ def main(argv: list[str] | None = None) -> int:
             uia_max_depth=args.uia_max_depth,
             uia_max_elements=args.uia_max_elements,
         )
-    return run_gui(config, enable_perception_tools=args.enable_perception_tools)
+    return run_gui(
+        config,
+        enable_perception_tools=args.enable_perception_tools,
+        show_capture_overlay=not args.hide_overlay,
+    )
 
 
 if __name__ == "__main__":

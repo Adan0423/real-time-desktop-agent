@@ -7,6 +7,10 @@ from typing import Any
 from rtda.actions.engine import ActionEngine
 from rtda.actions.pyautogui_executor import PyAutoGUIActionExecutor
 from rtda.agent.planner import RuleBasedPlanner
+from rtda.capture.diagnostics import monitors_to_dict, run_capture_diagnostic
+from rtda.capture.interface import CaptureConfig
+from rtda.capture.region import Region
+from rtda.capture.windows_capture import WindowsCaptureEngine
 from rtda.models.actions import ActionCommand, ActionType
 from rtda.models.state import UIState
 from rtda.perception.uia import UIAConfig, WindowsUIAutomationInspector, summarize_uia_elements
@@ -47,6 +51,43 @@ def classify_action(action: str, target: str | None = None, value: str | None = 
     return {"allowed": allowed, "risk": risk.value, "message": message}
 
 
+def capture_monitors() -> dict[str, Any]:
+    capture = WindowsCaptureEngine(CaptureConfig())
+    return {"monitors": monitors_to_dict(capture.list_monitors())}
+
+
+def capture_diagnostic(
+    duration_s: float = 2.0,
+    backend: str = "dxgi",
+    target_fps: int = 30,
+    monitor_index: int = 0,
+    window_title: str | None = None,
+    region_left: int | None = None,
+    region_top: int | None = None,
+    region_right: int | None = None,
+    region_bottom: int | None = None,
+) -> dict[str, Any]:
+    region = None
+    if None not in (region_left, region_top, region_right, region_bottom):
+        region = Region(
+            int(region_left),
+            int(region_top),
+            int(region_right),
+            int(region_bottom),
+        )
+    selected_backend = "wgc" if window_title else backend
+    config = CaptureConfig(
+        backend=selected_backend,
+        target_fps=target_fps,
+        monitor_index=monitor_index,
+        region=region,
+        window_title=window_title,
+    )
+    capture = WindowsCaptureEngine(config)
+    result = run_capture_diagnostic(capture, config=config, duration_s=duration_s)
+    return result.to_dict()
+
+
 def dry_run_action(action: str, target: str | None = None, value: str | None = None) -> dict[str, Any]:
     command = ActionCommand(action=ActionType(action), target=target, value=value)
     engine = ActionEngine(executor=PyAutoGUIActionExecutor(dry_run=True))
@@ -64,6 +105,8 @@ def build_mcp_server():
     mcp.tool()(health)
     mcp.tool()(inspect_uia)
     mcp.tool()(plan_goal)
+    mcp.tool()(capture_monitors)
+    mcp.tool()(capture_diagnostic)
     mcp.tool()(classify_action)
     mcp.tool()(dry_run_action)
     return mcp

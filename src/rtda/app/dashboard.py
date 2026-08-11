@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 import time
+from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import replace
 from typing import Any
 
+from rtda.ai.client import AIClient, AIClientConfig, AIClientError, default_model
 from rtda.capture.interface import CaptureConfig
 from rtda.capture.region import Region
 from rtda.capture.windows_capture import WindowsCaptureEngine
+from rtda.overlay.geometry import capture_rect_from_config
+from rtda.overlay.qt import GreenCaptureOverlay
 
 
 class CaptureDashboard:
@@ -15,6 +19,7 @@ class CaptureDashboard:
         config: CaptureConfig | None = None,
         *,
         enable_perception_tools: bool = False,
+        show_capture_overlay: bool = True,
     ) -> None:
         try:
             from PySide6.QtCore import Qt, QTimer
@@ -28,6 +33,7 @@ class CaptureDashboard:
                 QLineEdit,
                 QPushButton,
                 QSpinBox,
+                QTextEdit,
                 QVBoxLayout,
                 QWidget,
             )
@@ -43,11 +49,16 @@ class CaptureDashboard:
         self.QPen = QPen
         self.QPixmap = QPixmap
         self.QTimer = QTimer
+        self.QTextEdit = QTextEdit
         self.QWidget = QWidget
 
         self._config = config or CaptureConfig()
         self._enable_perception_tools = enable_perception_tools
         self._capture = WindowsCaptureEngine(self._config)
+        self._overlay = GreenCaptureOverlay()
+        self._last_overlay_update = 0.0
+        self._ai_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="rtda-ai")
+        self._ai_future: Future[str] | None = None
         self._change_processor: Any | None = None
         self._uia_inspector: Any | None = None
         self._latest_change: Any | None = None
@@ -67,6 +78,8 @@ class CaptureDashboard:
         self.window_title = QLineEdit()
         self.window_title.setPlaceholderText("Window title for WGC")
         self.region_enabled = QCheckBox()
+        self.overlay_enabled = QCheckBox()
+        self.overlay_enabled.setChecked(show_capture_overlay)
         self.change_detection_enabled = QCheckBox()
         self.change_detection_enabled.setChecked(False)
         self.left_spin = self._coord_spin()
@@ -84,6 +97,16 @@ class CaptureDashboard:
 
         self.metrics_label = QLabel("Capture FPS: 0.0\nResolution: -\nLatency: -\nDropped: 0")
         self.uia_label = QLabel("UIA: not inspected")
+        self.ai_provider = QComboBox()
+        self.ai_provider.addItems(["openai", "anthropic"])
+        self.ai_model = QLineEdit(default_model("openai"))
+        self.ai_token = QLineEdit()
+        self.ai_token.setEchoMode(QLineEdit.EchoMode.Password)
+        self.ai_prompt = QTextEdit()
+        self.ai_prompt.setMinimumHeight(90)
+        self.ai_button = QPushButton("Ask AI")
+        self.ai_output = QLabel("AI: idle")
+        self.ai_output.setWordWrap(True)
         self.preview_label = QLabel("No frame")
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview_label.setMinimumSize(800, 520)
@@ -95,6 +118,7 @@ class CaptureDashboard:
         form.addRow("Target FPS", self.fps_spin)
         form.addRow("Window", self.window_title)
         form.addRow("Use region", self.region_enabled)
+        form.addRow("Green border", self.overlay_enabled)
         if self._enable_perception_tools:
             form.addRow("Change detect", self.change_detection_enabled)
         form.addRow("Left", self.left_spin)
@@ -115,6 +139,14 @@ class CaptureDashboard:
         side.addWidget(self.metrics_label)
         if self._enable_perception_tools:
             side.addWidget(self.uia_label)
+        ai_form = QFormLayout()
+        ai_form.addRow("AI provider", self.ai_provider)
+        ai_form.addRow("AI model", self.ai_model)
+        ai_form.addRow("AI token", self.ai_token)
+        ai_form.addRow("AI prompt", self.ai_prompt)
+        ai_form.addRow(self.ai_button)
+        side.addLayout(ai_form)
+        side.addWidget(self.ai_output)
         side.addStretch(1)
 
         root = QHBoxLayout()
@@ -125,16 +157,27 @@ class CaptureDashboard:
         self.timer = QTimer()
         self.timer.setInterval(33)
         self.timer.timeout.connect(self._update_preview)
+        self.ai_timer = QTimer()
+        self.ai_timer.setInterval(100)
+        self.ai_timer.timeout.connect(self._poll_ai_result)
 
         self.start_button.clicked.connect(self.start)
         self.pause_button.clicked.connect(self.pause_or_resume)
         self.stop_button.clicked.connect(self.stop)
         self.uia_button.clicked.connect(self.inspect_uia)
+        self.overlay_enabled.stateChanged.connect(self._refresh_overlay)
+        self.ai_provider.currentTextChanged.connect(self._sync_ai_model)
+        self.ai_button.clicked.connect(self.ask_ai)
+        self.widget.destroyed.connect(self._shutdown)
 
         self._load_monitors()
 
     def show(self) -> None:
         self.widget.show()
+
+    def _shutdown(self) -> None:
+        self._overlay.hide()
+        self._ai_executor.shutdown(wait=False, cancel_futures=True)
 
     def start(self) -> None:
         self.stop()
@@ -163,6 +206,7 @@ class CaptureDashboard:
         self._reset_perception_tools()
         self._capture.start()
         self.timer.start()
+        self._refresh_overlay()
         self.start_button.setEnabled(False)
         self.pause_button.setEnabled(True)
         self.stop_button.setEnabled(True)
@@ -170,6 +214,7 @@ class CaptureDashboard:
     def stop(self) -> None:
         self.timer.stop()
         self._capture.stop()
+        self._overlay.hide()
         self.start_button.setEnabled(True)
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
@@ -205,6 +250,23 @@ class CaptureDashboard:
             f"{snapshot.latency_ms:.1f} ms{error_text}"
         )
 
+    def ask_ai(self) -> None:
+        if self._ai_future is not None and not self._ai_future.done():
+            return
+        prompt = self.ai_prompt.toPlainText().strip()
+        if not prompt:
+            self.ai_output.setText("AI: empty prompt")
+            return
+        provider = self.ai_provider.currentText()
+        token = self.ai_token.text().strip() or None
+        model = self.ai_model.text().strip() or None
+        config = AIClientConfig(provider=provider, api_key=token, model=model)
+        system = self._ai_system_prompt()
+        self.ai_button.setEnabled(False)
+        self.ai_output.setText("AI: working")
+        self._ai_future = self._ai_executor.submit(self._ask_ai_worker, config, prompt, system)
+        self.ai_timer.start()
+
     def _load_monitors(self) -> None:
         self.monitor_combo.clear()
         monitors = self._capture.list_monitors()
@@ -215,6 +277,7 @@ class CaptureDashboard:
             self.monitor_combo.addItem(monitor.label)
 
     def _update_preview(self) -> None:
+        self._refresh_overlay(throttle_s=0.5)
         frame = self._capture.latest_frame()
         stats = self._capture.metrics()
         change_enabled = (
@@ -271,6 +334,55 @@ class CaptureDashboard:
             self.Qt.TransformationMode.SmoothTransformation,
         )
         self.preview_label.setPixmap(scaled)
+
+    def _refresh_overlay(self, *_args, throttle_s: float = 0.0) -> None:
+        if not self.overlay_enabled.isChecked():
+            self._overlay.hide()
+            return
+        now = time.perf_counter()
+        if throttle_s and now - self._last_overlay_update < throttle_s:
+            return
+        self._last_overlay_update = now
+        rect = capture_rect_from_config(self._capture.config, self._capture.list_monitors())
+        self._overlay.show_rect(rect)
+
+    def _sync_ai_model(self, provider: str) -> None:
+        if provider in ("openai", "anthropic"):
+            self.ai_model.setText(default_model(provider))
+
+    def _poll_ai_result(self) -> None:
+        if self._ai_future is None or not self._ai_future.done():
+            return
+        self.ai_timer.stop()
+        try:
+            output = self._ai_future.result()
+        except AIClientError as exc:
+            output = f"AI error: {exc}"
+        except Exception as exc:  # pragma: no cover - defensive UI boundary
+            output = f"AI error: {type(exc).__name__}: {exc}"
+        self.ai_output.setText(output)
+        self.ai_button.setEnabled(True)
+        self._ai_future = None
+
+    def _ai_system_prompt(self) -> str:
+        stats = self._capture.metrics()
+        frame = self._capture.latest_frame()
+        resolution = "unknown"
+        if stats.latest_width and stats.latest_height:
+            resolution = f"{stats.latest_width}x{stats.latest_height}"
+        frame_text = "no latest frame" if frame is None else f"latest frame #{frame.sequence}"
+        return (
+            "You are RTDA standalone test assistant. "
+            "Use the capture metrics as context, but do not claim visual details "
+            "that are not present in the prompt. "
+            f"Capture backend={self._capture.config.backend}, resolution={resolution}, "
+            f"fps={stats.capture_fps:.2f}, latency_ms={stats.capture_latency_ms}, {frame_text}."
+        )
+
+    @staticmethod
+    def _ask_ai_worker(config: AIClientConfig, prompt: str, system: str) -> str:
+        response = AIClient(config).complete(prompt, system=system)
+        return response.output_text
 
     @staticmethod
     def _coord_spin(default: int = 0):
