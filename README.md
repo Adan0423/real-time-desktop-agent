@@ -169,6 +169,8 @@ real-time-desktop-agent/
 |-- docs/                # Documentacion tecnica y roadmap
 |-- tests/               # Suite pytest
 |-- packaging/mcpb/      # Manifiesto base para Claude Desktop MCPB
+|-- plugins/             # Plugin local ChatGPT/Codex
+|-- .agents/plugins/     # Marketplace local para ChatGPT Desktop/Codex
 |-- .env.example         # Variables opcionales de referencia
 |-- mcpb_server.py       # Entrypoint stdio para bundle MCPB
 |-- pyproject.toml       # Dependencias y metadata del paquete
@@ -193,9 +195,18 @@ El estado por modulo vive en [docs/PROGRESS.md](docs/PROGRESS.md) y los pendient
 - [IA con token](docs/ai.md)
 - [MCP](docs/mcp.md)
 - [Claude Desktop MCPB](docs/MCPB.md)
+- [ChatGPT / Codex Plugin](docs/CHATGPT_PLUGIN.md)
 - [Contribuir](CONTRIBUTING.md)
 
-## Complemento Claude Desktop
+## Complementos IA
+
+RTDA usa formatos distintos segun el host:
+
+| Host | Formato | Ruta |
+| --- | --- | --- |
+| Claude Desktop | `.mcpb` | `dist/real-time-desktop-agent-0.1.0.mcpb` |
+| ChatGPT / Codex | Plugin con `.codex-plugin/plugin.json` | `plugins/real-time-desktop-agent/` |
+| MCP generico | MCP server stdio/HTTP/SSE | `python -m rtda.mcp.server` |
 
 Claude Desktop instala complementos locales arrastrando un archivo `.mcpb`. `.dxt` fue el nombre anterior del formato; Anthropic recomienda `.mcpb` para paquetes nuevos.
 
@@ -212,6 +223,8 @@ dist/real-time-desktop-agent-0.1.0.mcpb
 ```
 
 El paquete local no esta firmado; para distribucion publica conviene firmarlo y probar instalacion en Claude Desktop.
+
+Para ChatGPT/Codex, RTDA incluye un plugin local en [plugins/real-time-desktop-agent](plugins/real-time-desktop-agent) y un marketplace repo en [.agents/plugins/marketplace.json](.agents/plugins/marketplace.json). Ver [docs/CHATGPT_PLUGIN.md](docs/CHATGPT_PLUGIN.md).
 
 ## Licencia y Contacto
 

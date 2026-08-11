@@ -1,0 +1,6 @@
+{
+  "real-time-desktop-agent": {
+    "command": "python",
+    "args": ["-m", "rtda.mcp.server", "--transport", "stdio"]
+  }
+}

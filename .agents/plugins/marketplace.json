@@ -1,0 +1,20 @@
+{
+  "name": "rtda-local",
+  "interface": {
+    "displayName": "RTDA Local Plugins"
+  },
+  "plugins": [
+    {
+      "name": "real-time-desktop-agent",
+      "source": {
+        "source": "local",
+        "path": "./plugins/real-time-desktop-agent"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
