@@ -6,40 +6,62 @@ Ultima actualizacion: 2026-08-11
 
 RTDA tiene implementado el nucleo local de captura, metricas, preview, overlay,
 percepcion inicial, acciones seguras, agente deterministico y servidor MCP. La
-ruta de IA con token existe para texto/contexto, pero aun no envia frames
+arquitectura ya separa el complemento funcional (`rtda.extension`) de la app de
+escritorio (`rtda.app` y `rtda.desktop`).
+
+La ruta de IA con token existe para texto/contexto, pero aun no envia frames
 multimodales a proveedores externos.
 
 ## Estado por Modulo
 
 | Modulo / Feature | Estado | Evidencia |
 | --- | --- | --- |
-| Captura monitor DXGI | ✅ Implementado | `WindowsCaptureEngine`, `--capture-diagnostic` |
-| Captura ventana WGC | ✅ Implementado | `--window-title`, backend `wgc` |
-| Seleccion de region | ✅ Implementado | `Region`, CLI `--region` |
-| Frame buffer | ✅ Implementado | `FrameBuffer`, tests |
-| Preview local | ✅ Implementado | `CaptureDashboard` |
-| FPS / latencia / drops | ✅ Implementado | `CaptureMetrics`, `docs/performance.md` |
-| Overlay verde | ✅ Implementado | `rtda.overlay`, prueba offscreen |
-| Diagnostico de captura | ✅ Implementado | `rtda.capture.diagnostics` |
-| OpenCV change detection | ✅ Implementado | `OpenCVChangeDetector` |
-| Windows UI Automation | ✅ Implementado | `WindowsUIAutomationInspector` |
-| OCR adapter | 🚧 Parcial | Adapter y tests fake; runtime Paddle depende de entorno |
-| Vision ONNX adapter | 🚧 Parcial | Wrapper ONNX + vision estructurada |
-| Acciones seguras | 🚧 Parcial | Motor, risk policy y dry-run; ejecucion real requiere mas hardening |
-| Agente observe-plan-act | ✅ Implementado | `AgentExecutor` rule-based |
-| MCP server | ✅ Implementado | `health`, `capture_*`, `inspect_uia`, `plan_goal`, `dry_run_action` |
-| MCPB manifest Claude | ✅ Implementado | Manifest validado con `mcpb validate` |
-| MCPB paquete local | 🚧 Parcial | `.mcpb` generado; falta prueba manual en Claude Desktop |
-| Panel IA con token | 🚧 Parcial | OpenAI/Anthropic texto; falta imagen/frame |
-| Base de datos | ❌ No implementado | No hay modulo DB |
-| CI/CD | ❌ No implementado | No hay workflows `.github` |
+| Captura monitor DXGI | Implementado | `WindowsCaptureEngine`, `--capture-diagnostic` |
+| Captura ventana WGC | Implementado | `--window-title`, backend `wgc` |
+| Seleccion de region | Implementado | `Region`, CLI `--region`, inputs en dashboard |
+| Frame buffer | Implementado | `FrameBuffer`, tests |
+| Runtime de complemento | Implementado | `RTDAExtensionRuntime`, `tests/test_extension_runtime.py` |
+| Desktop Control Surface | Implementado | `CaptureDashboard`, instancia offscreen verificada |
+| Control flotante | Implementado | `RTDAFloatingControl`, `tests/test_desktop_floating.py` |
+| Preview local | Implementado | `CaptureDashboard` |
+| FPS / latencia / drops | Implementado | `CaptureMetrics`, `docs/performance.md` |
+| Overlay verde | Implementado | `rtda.overlay`, prueba offscreen |
+| Diagnostico de captura | Implementado | `rtda.capture.diagnostics` |
+| OpenCV change detection | Implementado | `OpenCVChangeDetector` |
+| Windows UI Automation | Implementado | `WindowsUIAutomationInspector` |
+| OCR adapter | Parcial | Adapter y tests fake; runtime Paddle depende de entorno |
+| Vision ONNX adapter | Parcial | Wrapper ONNX + vision estructurada |
+| Acciones seguras | Parcial | Motor, risk policy y dry-run; ejecucion real requiere mas hardening |
+| Agente observe-plan-act | Implementado | `AgentExecutor` rule-based |
+| MCP server | Implementado | `health`, `capture_*`, `inspect_uia`, `plan_goal`, `dry_run_action` |
+| MCPB manifest Claude | Implementado | Manifest validado con `mcpb validate` |
+| MCPB paquete local | Parcial | `.mcpb` generado; falta prueba manual en Claude Desktop |
+| Panel IA con token | Parcial | OpenAI/Anthropic texto; falta imagen/frame |
+| Base de datos | No implementado | No hay modulo DB |
+| CI/CD | No implementado | No hay workflows `.github` |
 
 ## Pruebas
 
-Suite detectada:
+Suite actual:
 
 ```powershell
 python -m pytest
+```
+
+Resultado local del 2026-08-11:
+
+```text
+43 passed
+```
+
+Verificaciones adicionales:
+
+```powershell
+python -m compileall src\rtda\app\dashboard.py src\rtda\desktop src\rtda\extension
+```
+
+```text
+dashboard instantiated
 ```
 
 Cobertura funcional actual por archivos:
@@ -55,12 +77,15 @@ Cobertura funcional actual por archivos:
 - agente;
 - MCP server;
 - AI client;
-- overlay geometry.
+- overlay geometry;
+- runtime de extension;
+- control flotante Qt.
 
 ## Siguiente Hito
 
-El MVP debe cerrar tres puntos:
+El MVP debe cerrar cuatro puntos:
 
 1. Enviar frame/screenshot al proveedor IA.
 2. Probar instalacion manual del `.mcpb` en Claude Desktop.
-3. Endurecer permisos y confirmaciones antes de acciones reales.
+3. Convertir el runtime in-process en opcion de servicio local persistente.
+4. Endurecer permisos y confirmaciones antes de acciones reales.

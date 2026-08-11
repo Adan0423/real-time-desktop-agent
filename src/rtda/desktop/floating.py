@@ -4,7 +4,12 @@ from collections.abc import Callable
 
 
 class RTDAFloatingControl:
-    """Small always-on-top control that indicates the extension is alive."""
+    """Always-on-top control for the RTDA extension runtime.
+
+    The floating control intentionally stays separate from the main dashboard:
+    it is a compact background indicator that lets the user see whether the
+    RTDA extension/complement is alive and perform the core runtime actions.
+    """
 
     def __init__(
         self,
@@ -18,10 +23,10 @@ class RTDAFloatingControl:
         from PySide6.QtCore import Qt, QTimer
         from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 
-        self.Qt = Qt
         self._running = False
         self._paused = False
-        self.widget = _FloatingWidget()
+        self._positioned = False
+        self.widget = _create_floating_widget()
         self.widget.setWindowTitle("RTDA")
         self.widget.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
@@ -29,14 +34,14 @@ class RTDAFloatingControl:
             | Qt.WindowType.WindowStaysOnTopHint
         )
         self.widget.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
-        self.widget.resize(320, 112)
+        self.widget.resize(344, 118)
 
-        self.orb = _PulseOrb()
+        self.orb = _create_pulse_orb()
         self.title = QLabel("RTDA Extension")
         self.title.setObjectName("floatingTitle")
-        self.status = QLabel("Idle · ready")
+        self.status = QLabel("Idle - ready")
         self.status.setObjectName("floatingStatus")
-        self.metrics = QLabel("0.0 FPS · -")
+        self.metrics = QLabel("0.0 FPS - -")
         self.metrics.setObjectName("floatingMetrics")
 
         self.open_button = QPushButton("Open")
@@ -91,6 +96,8 @@ class RTDAFloatingControl:
         self.set_status(running=False, paused=False, fps=0.0, resolution="-", latency_ms=None, dropped=0)
 
     def show(self) -> None:
+        if not self._positioned:
+            self._move_to_default_position()
         self.widget.show()
         self.widget.raise_()
 
@@ -119,124 +126,124 @@ class RTDAFloatingControl:
             label = "Idle"
             tone = "idle"
         latency = "-" if latency_ms is None else f"{latency_ms:.1f} ms"
-        self.status.setText(f"{label} · local MCP")
-        self.metrics.setText(f"{fps:.1f} FPS · {resolution} · {latency} · drop {dropped}")
+        self.status.setText(f"{label} - local MCP")
+        self.metrics.setText(f"{fps:.1f} FPS - {resolution} - {latency} - drop {dropped}")
         self.pause_button.setText("Resume" if paused else "Pause")
         self.pause_button.setEnabled(running)
         self.stop_button.setEnabled(running)
         self.run_button.setEnabled(not running)
         self.orb.set_tone(tone)
 
+    def _move_to_default_position(self) -> None:
+        from PySide6.QtWidgets import QApplication
 
-class _FloatingWidget:
-    def __init__(self) -> None:
-        from PySide6.QtCore import Qt
-        from PySide6.QtGui import QColor, QPainter, QPen
-        from PySide6.QtCore import QPoint
-        from PySide6.QtWidgets import QWidget
+        screen = QApplication.primaryScreen()
+        if screen is None:
+            self._positioned = True
+            return
+        available = screen.availableGeometry()
+        self.widget.move(available.right() - self.widget.width() - 28, available.top() + 28)
+        self._positioned = True
 
-        class FloatingWidget(QWidget):
-            def __init__(self) -> None:
-                super().__init__()
-                self._drag_origin: QPoint | None = None
 
-            def mousePressEvent(self, event) -> None:
-                if event.button() == Qt.MouseButton.LeftButton:
-                    self._drag_origin = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
-                    event.accept()
+def _create_floating_widget():
+    from PySide6.QtCore import QPoint, Qt
+    from PySide6.QtGui import QColor, QPainter, QPen
+    from PySide6.QtWidgets import QWidget
 
-            def mouseMoveEvent(self, event) -> None:
-                if self._drag_origin is not None:
-                    self.move(event.globalPosition().toPoint() - self._drag_origin)
-                    event.accept()
+    class FloatingWidget(QWidget):
+        def __init__(self) -> None:
+            super().__init__()
+            self._drag_origin: QPoint | None = None
 
-            def mouseReleaseEvent(self, event) -> None:
-                self._drag_origin = None
+        def mousePressEvent(self, event) -> None:
+            if event.button() == Qt.MouseButton.LeftButton:
+                self._drag_origin = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
                 event.accept()
 
-            def paintEvent(self, _event) -> None:
-                painter = QPainter(self)
-                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-                rect = self.rect().adjusted(1, 1, -1, -1)
-                painter.setPen(QPen(QColor("#2a3750"), 1))
-                painter.setBrush(QColor(8, 12, 19, 235))
-                painter.drawRoundedRect(rect, 14, 14)
-                painter.end()
+        def mouseMoveEvent(self, event) -> None:
+            if self._drag_origin is not None:
+                self.move(event.globalPosition().toPoint() - self._drag_origin)
+                event.accept()
 
-        self._impl = FloatingWidget()
+        def mouseReleaseEvent(self, event) -> None:
+            self._drag_origin = None
+            event.accept()
 
-    def __getattr__(self, name: str):
-        return getattr(self._impl, name)
+        def paintEvent(self, _event) -> None:
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            rect = self.rect().adjusted(1, 1, -1, -1)
+            painter.setPen(QPen(QColor("#2a3750"), 1))
+            painter.setBrush(QColor(8, 12, 19, 235))
+            painter.drawRoundedRect(rect, 14, 14)
+            painter.end()
+
+    return FloatingWidget()
 
 
-class _PulseOrb:
-    def __init__(self) -> None:
-        from PySide6.QtCore import QSize
-        from PySide6.QtWidgets import QWidget
+def _create_pulse_orb():
+    from PySide6.QtCore import QSize, Qt
+    from PySide6.QtGui import QColor, QPainter, QPen
+    from PySide6.QtWidgets import QWidget
 
-        class PulseOrbWidget(QWidget):
-            def __init__(self) -> None:
-                super().__init__()
-                self._phase = 0
-                self._tone = "idle"
-                self.setMinimumSize(72, 72)
-                self.setMaximumSize(72, 72)
+    class PulseOrbWidget(QWidget):
+        def __init__(self) -> None:
+            super().__init__()
+            self._phase = 0
+            self._tone = "idle"
+            self.setMinimumSize(72, 72)
+            self.setMaximumSize(72, 72)
 
-            def sizeHint(self) -> QSize:
-                return QSize(72, 72)
+        def sizeHint(self) -> QSize:
+            return QSize(72, 72)
 
-            def set_tone(self, tone: str) -> None:
-                self._tone = tone
-                self.update()
+        def set_tone(self, tone: str) -> None:
+            self._tone = tone
+            self.update()
 
-            def tick(self) -> None:
-                self._phase = (self._phase + 7) % 360
-                self.update()
+        def tick(self) -> None:
+            self._phase = (self._phase + 7) % 360
+            self.update()
 
-            def paintEvent(self, _event) -> None:
-                from PySide6.QtCore import Qt
-                from PySide6.QtGui import QColor, QPainter, QPen
+        def paintEvent(self, _event) -> None:
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            rect = self.rect().adjusted(8, 8, -8, -8)
+            if self._tone == "active":
+                main = QColor("#ffb547")
+                alt = QColor("#4be3ff")
+            elif self._tone == "paused":
+                main = QColor("#a7b2c7")
+                alt = QColor("#ffb547")
+            else:
+                main = QColor("#4b5870")
+                alt = QColor("#75839c")
 
-                painter = QPainter(self)
-                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-                rect = self.rect().adjusted(8, 8, -8, -8)
-                if self._tone == "active":
-                    main = QColor("#ffb547")
-                    alt = QColor("#4be3ff")
-                elif self._tone == "paused":
-                    main = QColor("#a7b2c7")
-                    alt = QColor("#ffb547")
-                else:
-                    main = QColor("#4b5870")
-                    alt = QColor("#75839c")
+            painter.setPen(QPen(QColor("#111723"), 2))
+            painter.setBrush(QColor("#070a10"))
+            painter.drawEllipse(rect)
 
-                painter.setPen(QPen(QColor("#111723"), 2))
-                painter.setBrush(QColor("#070a10"))
-                painter.drawEllipse(rect)
+            painter.setPen(QPen(main, 3))
+            painter.drawArc(rect, self._phase * 16, 210 * 16)
+            painter.setPen(QPen(alt, 2))
+            painter.drawArc(rect.adjusted(8, 8, -8, -8), (self._phase + 120) * 16, 260 * 16)
+            painter.setPen(QPen(QColor(main.red(), main.green(), main.blue(), 120), 1))
+            center_x = self.width() // 2
+            center_y = self.height() // 2
+            for offset in (0, 45, 105, 168):
+                painter.save()
+                painter.translate(center_x, center_y)
+                painter.rotate(offset + self._phase / 7)
+                painter.drawLine(0, -24, 0, 24)
+                painter.restore()
 
-                painter.setPen(QPen(main, 3))
-                painter.drawArc(rect, self._phase * 16, 210 * 16)
-                painter.setPen(QPen(alt, 2))
-                painter.drawArc(rect.adjusted(8, 8, -8, -8), (self._phase + 120) * 16, 260 * 16)
-                painter.setPen(QPen(QColor(main.red(), main.green(), main.blue(), 120), 1))
-                center_x = self.width() // 2
-                center_y = self.height() // 2
-                for offset in (0, 45, 105, 168):
-                    painter.save()
-                    painter.translate(center_x, center_y)
-                    painter.rotate(offset + self._phase / 7)
-                    painter.drawLine(0, -24, 0, 24)
-                    painter.restore()
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(main)
+            painter.drawEllipse(self.width() // 2 - 5, self.height() // 2 - 5, 10, 10)
+            painter.end()
 
-                painter.setPen(Qt.PenStyle.NoPen)
-                painter.setBrush(main)
-                painter.drawEllipse(self.width() // 2 - 5, self.height() // 2 - 5, 10, 10)
-                painter.end()
-
-        self._impl = PulseOrbWidget()
-
-    def __getattr__(self, name: str):
-        return getattr(self._impl, name)
+    return PulseOrbWidget()
 
 
 _FLOATING_STYLE = """
@@ -244,9 +251,6 @@ QWidget {
     color: #eef4ff;
     font-family: "Segoe UI";
     font-size: 12px;
-}
-_FloatingWidget {
-    background: transparent;
 }
 QLabel#floatingTitle {
     color: #ffffff;

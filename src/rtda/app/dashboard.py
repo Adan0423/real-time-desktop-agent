@@ -68,6 +68,7 @@ class CaptureDashboard:
         self._runtime = RTDAExtensionRuntime(self._config)
         self._overlay = GreenCaptureOverlay()
         self._last_overlay_update = 0.0
+        self._shutdown_started = False
         self._ai_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="rtda-ai")
         self._ai_future: Future[str] | None = None
         self._change_processor: Any | None = None
@@ -175,7 +176,7 @@ class CaptureDashboard:
             self._floating.show()
 
     def quit(self) -> None:
-        app = self.QWidget().window().windowHandle()
+        self.stop()
         self._shutdown()
         from PySide6.QtWidgets import QApplication
 
@@ -222,6 +223,7 @@ class CaptureDashboard:
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
         self.pause_button.setText("Pausar")
+        self.preview_label.clear()
         self.preview_label.setText("Sin frame")
         self._update_runtime_status()
 
@@ -521,7 +523,7 @@ class CaptureDashboard:
         self.preview_label.setPixmap(scaled)
 
     def _refresh_overlay(self, *_args, throttle_s: float = 0.0) -> None:
-        if not self.overlay_enabled.isChecked():
+        if not self.overlay_enabled.isChecked() or not self._runtime.running:
             self._overlay.hide()
             return
         now = time.perf_counter()
@@ -603,8 +605,23 @@ class CaptureDashboard:
         self.widget.activateWindow()
 
     def _shutdown(self, *_args) -> None:
-        self._overlay.hide()
-        self._floating.hide()
+        if self._shutdown_started:
+            return
+        self._shutdown_started = True
+        for timer in (self.timer, self.ai_timer):
+            try:
+                timer.stop()
+            except RuntimeError:
+                pass
+        try:
+            self._runtime.stop_capture()
+        except RuntimeError:
+            pass
+        try:
+            self._overlay.hide()
+            self._floating.hide()
+        except RuntimeError:
+            pass
         self._ai_executor.shutdown(wait=False, cancel_futures=True)
 
     @staticmethod
@@ -651,3 +668,133 @@ class CaptureDashboard:
 
     def _apply_theme(self) -> None:
         self.widget.setStyleSheet(_DASHBOARD_STYLE)
+
+
+_DASHBOARD_STYLE = """
+QWidget#rtdaRoot {
+    background: #080b10;
+    color: #edf5ff;
+    font-family: "Segoe UI";
+    font-size: 12px;
+}
+QFrame#sidebar {
+    background: #0b1018;
+    border-right: 1px solid #1d2a3a;
+}
+QFrame#previewPanel {
+    background: #05070b;
+}
+QFrame#heroPanel {
+    background: #101723;
+    border: 1px solid #26364c;
+    border-radius: 8px;
+    padding: 14px;
+}
+QFrame#sectionPanel {
+    background: #0f1621;
+    border: 1px solid #253247;
+    border-radius: 8px;
+}
+QFrame#metricCard {
+    background: #111a27;
+    border: 1px solid #26374e;
+    border-radius: 7px;
+}
+QLabel#appTitle {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 800;
+}
+QLabel#sectionTitle,
+QLabel#panelTitle {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+}
+QLabel#fieldLabel,
+QLabel#metricLabel,
+QLabel#mutedText {
+    color: #91a0b6;
+}
+QLabel#metricValue {
+    color: #ffbd5d;
+    font-size: 18px;
+    font-weight: 800;
+}
+QLabel#stateChip {
+    background: #172131;
+    color: #aebbd0;
+    border: 1px solid #2b3b52;
+    border-radius: 6px;
+    padding: 6px 9px;
+}
+QLabel#stateChip[tone="active"] {
+    color: #4be3ff;
+    border-color: #2baac2;
+}
+QLabel#stateChip[tone="paused"] {
+    color: #ffbd5d;
+    border-color: #b77828;
+}
+QLabel#previewSurface {
+    background: #030507;
+    color: #c9d6e6;
+    border: 1px solid #26364c;
+    border-radius: 8px;
+}
+QPushButton {
+    background: #162033;
+    color: #edf5ff;
+    border: 1px solid #30435f;
+    border-radius: 6px;
+    min-height: 28px;
+    padding: 6px 10px;
+}
+QPushButton:hover {
+    border-color: #ffb547;
+    background: #1d2a40;
+}
+QPushButton:pressed {
+    background: #243754;
+}
+QPushButton:disabled {
+    color: #5d6b7e;
+    background: #111823;
+    border-color: #1d2838;
+}
+QComboBox,
+QLineEdit,
+QSpinBox,
+QTextEdit {
+    background: #0a0f17;
+    color: #eef5ff;
+    border: 1px solid #2b3b52;
+    border-radius: 6px;
+    padding: 6px 8px;
+    selection-background-color: #2baac2;
+}
+QTextEdit {
+    min-height: 82px;
+}
+QComboBox:focus,
+QLineEdit:focus,
+QSpinBox:focus,
+QTextEdit:focus {
+    border-color: #4be3ff;
+}
+QCheckBox {
+    color: #d8e4f3;
+    spacing: 7px;
+}
+QCheckBox::indicator {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #40526b;
+    background: #0a0f17;
+}
+QCheckBox::indicator:checked {
+    background: #ffb547;
+    border-color: #ffce79;
+}
+"""

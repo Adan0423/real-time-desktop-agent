@@ -4,22 +4,33 @@ Ultima actualizacion: 2026-08-11
 
 ## Vision General
 
-RTDA es una aplicacion local-first para Windows 11. Su nucleo captura pantalla,
-mantiene frames recientes en memoria, mide rendimiento y expone la observacion a
-dos superficies:
+RTDA se organiza como un complemento local-first para IA, no como una app
+monolitica. La regla de arquitectura es:
 
-- app propia con preview, overlay verde y panel IA;
-- servidor MCP para Claude Desktop, ChatGPT u otros hosts compatibles.
+```text
+RTDA Extension/Complement = capacidades avanzadas reutilizables
+RTDA Desktop Control Surface = interfaz propia que consume esas capacidades
+MCP/MCPB = transporte para hosts externos de IA
+```
+
+La app de escritorio existe para operar, visualizar y probar el complemento.
+Claude Desktop, ChatGPT, Codex u otros hosts deben consumir RTDA por MCP o por
+la frontera funcional del paquete, no por detalles internos de la UI.
 
 ## Diagrama General
 
 ```mermaid
 flowchart TD
     Input["Monitor / Region / Ventana"] --> Capture["WindowsCaptureEngine"]
-    Capture --> Buffer["FrameBuffer"]
-    Capture --> Metrics["CaptureMetrics"]
-    Capture --> Overlay["GreenCaptureOverlay"]
-    Buffer --> Preview["Dashboard PySide6"]
+    Capture --> Runtime["RTDAExtensionRuntime"]
+    Runtime --> Buffer["FrameBuffer"]
+    Runtime --> Metrics["CaptureMetrics"]
+    Runtime --> Desktop["Desktop Control Surface"]
+    Runtime --> MCP["MCP Server / MCPB"]
+    Desktop --> Preview["Preview PySide6"]
+    Desktop --> Floating["Floating Control"]
+    Desktop --> Overlay["GreenCaptureOverlay"]
+    Desktop --> AI["AI Token Test Panel"]
     Buffer --> Change["OpenCV Change Detection"]
     Input --> UIA["Windows UI Automation"]
     Buffer --> OCR["PaddleOCR Adapter"]
@@ -31,11 +42,22 @@ flowchart TD
     State --> Planner["RuleBasedPlanner"]
     Planner --> Guard["ActionGuard"]
     Guard --> Executor["PyAutoGUI / Dry Run"]
-    State --> MCP["MCP Server"]
-    MCP --> Hosts["Claude Desktop / otros clientes MCP"]
-    Preview --> AI["AIClient"]
+    MCP --> Hosts["Claude Desktop / ChatGPT / Codex / otros hosts"]
     AI --> Providers["OpenAI / Anthropic"]
 ```
+
+## Capas
+
+| Capa | Modulo | Responsabilidad |
+| --- | --- | --- |
+| Captura | `src/rtda/capture/` | Monitores, DXGI/WGC, frame buffer y metricas |
+| Complemento | `src/rtda/extension/` | Fachada estable para consumir captura y estado desde UI/MCP |
+| Escritorio | `src/rtda/app/`, `src/rtda/desktop/` | Dashboard, preview, control flotante y panel de pruebas IA |
+| Overlay | `src/rtda/overlay/` | Marco verde del area observada |
+| MCP | `src/rtda/mcp/`, `mcpb_server.py` | Tools para hosts IA externos y bundle Claude Desktop |
+| Percepcion | `src/rtda/perception/` | OpenCV, UIA, OCR y vision estructurada |
+| Acciones | `src/rtda/actions/`, `src/rtda/safety/` | Resolucion de comandos, riesgo y dry-run |
+| Agente | `src/rtda/agent/` | Observe, plan, act, verify y recovery deterministico |
 
 ## Decisiones Tecnicas
 
@@ -44,7 +66,9 @@ flowchart TD
 | Captura de monitor | DXGI Desktop Duplication via `windows-capture` | Baja latencia y buena estabilidad para escritorio Windows |
 | Captura de ventana | Windows Graphics Capture via `windows-capture` | Soporta ventana especifica cuando Windows lo permite |
 | Enumeracion de monitores | Win32 `EnumDisplayMonitors` / `GetMonitorInfoW` via `ctypes` | Evita depender del backend de captura para listar pantallas |
-| UI local | PySide6 | Permite preview, controles y overlay sin navegador |
+| Fachada del complemento | `RTDAExtensionRuntime` | Separa capacidades de IA de la app de escritorio |
+| UI local | PySide6 | Preview nativo, controles, overlay y flotante sin navegador |
+| Control flotante | QWidget topmost sin borde | Permite ver estado e interactuar aunque la ventana principal este oculta |
 | Overlay verde | QWidget transparente topmost | Da feedback visual inmediato de que area observa RTDA |
 | Change detection | OpenCV + NumPy | Rapido, local y medible para diferencias entre frames |
 | UI Automation | `uiautomation` | Lectura estructurada de controles Windows sin OCR |
@@ -59,24 +83,25 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     participant User as Usuario
-    participant App as RTDA App
+    participant Desktop as Desktop UI
+    participant Runtime as Extension Runtime
     participant Capture as WindowsCaptureEngine
     participant Buffer as FrameBuffer
-    participant UI as Preview/Metricas
-    User->>App: start monitor/region/window
-    App->>Capture: start()
-    Capture->>Capture: DXGI o WGC frame callback
+    participant Floating as Floating Control
+    User->>Desktop: start monitor/region/window
+    Desktop->>Runtime: start_capture(config)
+    Runtime->>Capture: start()
     Capture->>Buffer: push(Frame)
-    Capture->>UI: metrics()
-    UI->>Buffer: latest_frame()
-    UI->>User: preview + FPS + latencia + drops
+    Desktop->>Runtime: latest_frame() / metrics()
+    Desktop->>User: preview + FPS + latencia + drops
+    Floating->>Runtime: start/pause/stop
 ```
 
 ## Flujo MCP
 
 ```mermaid
 sequenceDiagram
-    participant Host as Claude/Host MCP
+    participant Host as Host IA
     participant MCP as rtda.mcp.server
     participant Capture as Capture Engine
     participant Safety as ActionGuard
@@ -98,9 +123,13 @@ sequenceDiagram
   se tratan como peligrosas.
 - El panel IA no recibe frames todavia; usa prompt y contexto textual de
   metricas.
+- El control flotante solo llama operaciones de runtime: start, pause, stop,
+  open y quit.
 
 ## Limitaciones Actuales
 
+- La frontera `RTDAExtensionRuntime` es in-process; falta opcion de runtime como
+  proceso local persistente independiente de la app.
 - No hay base de datos persistente.
 - No hay CI/CD ni empaquetado release automatizado.
 - El OCR real depende de una version de Python compatible con PaddlePaddle.

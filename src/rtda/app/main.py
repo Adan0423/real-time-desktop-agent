@@ -34,6 +34,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Hide the green capture-target overlay in GUI mode.",
     )
+    parser.add_argument(
+        "--hide-floating",
+        action="store_true",
+        help="Hide the always-on-top RTDA background control in GUI mode.",
+    )
     parser.add_argument("--detect-changes", action="store_true")
     parser.add_argument("--inspect-uia", action="store_true")
     parser.add_argument("--uia-window-title", default=None)
@@ -129,6 +134,7 @@ def run_gui(
     *,
     enable_perception_tools: bool = False,
     show_capture_overlay: bool = True,
+    show_floating_control: bool = True,
 ) -> int:
     try:
         from PySide6.QtWidgets import QApplication
@@ -141,10 +147,12 @@ def run_gui(
     from rtda.app.dashboard import CaptureDashboard
 
     app = QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(not show_floating_control)
     dashboard = CaptureDashboard(
         config,
         enable_perception_tools=enable_perception_tools,
         show_capture_overlay=show_capture_overlay,
+        show_floating_control=show_floating_control,
     )
     dashboard.show()
     return app.exec()
@@ -182,6 +190,7 @@ def main(argv: list[str] | None = None) -> int:
         config,
         enable_perception_tools=args.enable_perception_tools,
         show_capture_overlay=not args.hide_overlay,
+        show_floating_control=not args.hide_floating,
     )
 
 
