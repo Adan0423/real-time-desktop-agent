@@ -13,7 +13,7 @@ Ultima actualizacion: 2026-08-11
    - Necesario: arrastrar el paquete en Claude Desktop, confirmar instalacion y probar tools.
 
 3. Separar runtime persistente de la app visual.
-   - Estado actual: `RTDAExtensionRuntime` separa la frontera en codigo, pero vive in-process.
+   - Estado actual: `RTDAComplementRuntime` separa la frontera en codigo, pero vive in-process.
    - Necesario: modo servicio/proceso local que la app y los hosts IA puedan consumir.
 
 4. Endurecer permisos para acciones reales.

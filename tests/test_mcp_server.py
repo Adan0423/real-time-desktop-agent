@@ -27,14 +27,14 @@ def test_mcp_server_builds() -> None:
 
 
 def test_mcp_capture_monitors_is_json_ready(monkeypatch) -> None:
-    class FakeCapture:
+    class FakeRuntime:
         def __init__(self, _config) -> None:
             pass
 
         def list_monitors(self):
             return [MonitorInfo(0, 123, 0, 0, 100, 80, True, "DISPLAY1")]
 
-    monkeypatch.setattr(server, "WindowsCaptureEngine", FakeCapture)
+    monkeypatch.setattr(server, "RTDAComplementRuntime", FakeRuntime)
 
     payload = capture_monitors()
 

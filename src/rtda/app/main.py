@@ -144,7 +144,7 @@ def run_gui(
             "Install with: python -m pip install -e .[gui]"
         ) from exc
 
-    from rtda.app.dashboard import CaptureDashboard
+    from rtda.desktop.dashboard import CaptureDashboard
 
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(not show_floating_control)

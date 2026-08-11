@@ -8,7 +8,7 @@ RTDA se organiza como un complemento local-first para IA, no como una app
 monolitica. La regla de arquitectura es:
 
 ```text
-RTDA Extension/Complement = capacidades avanzadas reutilizables
+RTDA Complement = capacidades avanzadas reutilizables
 RTDA Desktop Control Surface = interfaz propia que consume esas capacidades
 MCP/MCPB = transporte para hosts externos de IA
 ```
@@ -22,7 +22,7 @@ la frontera funcional del paquete, no por detalles internos de la UI.
 ```mermaid
 flowchart TD
     Input["Monitor / Region / Ventana"] --> Capture["WindowsCaptureEngine"]
-    Capture --> Runtime["RTDAExtensionRuntime"]
+    Capture --> Runtime["RTDAComplementRuntime"]
     Runtime --> Buffer["FrameBuffer"]
     Runtime --> Metrics["CaptureMetrics"]
     Runtime --> Desktop["Desktop Control Surface"]
@@ -51,8 +51,10 @@ flowchart TD
 | Capa | Modulo | Responsabilidad |
 | --- | --- | --- |
 | Captura | `src/rtda/capture/` | Monitores, DXGI/WGC, frame buffer y metricas |
-| Complemento | `src/rtda/extension/` | Fachada estable para consumir captura y estado desde UI/MCP |
-| Escritorio | `src/rtda/app/`, `src/rtda/desktop/` | Dashboard, preview, control flotante y panel de pruebas IA |
+| Complemento | `src/rtda/complement/` | API publica para captura, vision, acciones y border |
+| Compatibilidad | `src/rtda/extension/` | Alias para imports antiguos hacia `rtda.complement` |
+| Escritorio | `src/rtda/desktop/` | Dashboard, preview, control flotante y panel de pruebas IA |
+| Launchers | `src/rtda/app/` | CLI y shims de compatibilidad |
 | Overlay | `src/rtda/overlay/` | Marco verde del area observada |
 | MCP | `src/rtda/mcp/`, `mcpb_server.py` | Tools para hosts IA externos y bundle Claude Desktop |
 | Percepcion | `src/rtda/perception/` | OpenCV, UIA, OCR y vision estructurada |
@@ -66,7 +68,7 @@ flowchart TD
 | Captura de monitor | DXGI Desktop Duplication via `windows-capture` | Baja latencia y buena estabilidad para escritorio Windows |
 | Captura de ventana | Windows Graphics Capture via `windows-capture` | Soporta ventana especifica cuando Windows lo permite |
 | Enumeracion de monitores | Win32 `EnumDisplayMonitors` / `GetMonitorInfoW` via `ctypes` | Evita depender del backend de captura para listar pantallas |
-| Fachada del complemento | `RTDAExtensionRuntime` | Separa capacidades de IA de la app de escritorio |
+| Fachada del complemento | `RTDAComplementRuntime` | Separa capacidades de IA de la app de escritorio |
 | UI local | PySide6 | Preview nativo, controles, overlay y flotante sin navegador |
 | Control flotante | QWidget topmost sin borde | Permite ver estado e interactuar aunque la ventana principal este oculta |
 | Overlay verde | QWidget transparente topmost | Da feedback visual inmediato de que area observa RTDA |
@@ -84,7 +86,7 @@ flowchart TD
 sequenceDiagram
     participant User as Usuario
     participant Desktop as Desktop UI
-    participant Runtime as Extension Runtime
+    participant Runtime as Complement Runtime
     participant Capture as WindowsCaptureEngine
     participant Buffer as FrameBuffer
     participant Floating as Floating Control
@@ -103,14 +105,15 @@ sequenceDiagram
 sequenceDiagram
     participant Host as Host IA
     participant MCP as rtda.mcp.server
-    participant Capture as Capture Engine
+    participant Runtime as Complement Runtime
     participant Safety as ActionGuard
     Host->>MCP: capture_monitors()
-    MCP->>Capture: list_monitors()
-    Capture-->>MCP: MonitorInfo[]
+    MCP->>Runtime: list_monitors()
+    Runtime-->>MCP: MonitorInfo[]
     MCP-->>Host: JSON
     Host->>MCP: dry_run_action(click, target)
-    MCP->>Safety: classify + resolve
+    MCP->>Runtime: execute_action()
+    Runtime->>Safety: classify + resolve
     Safety-->>MCP: dry_run result
     MCP-->>Host: JSON
 ```
@@ -128,7 +131,7 @@ sequenceDiagram
 
 ## Limitaciones Actuales
 
-- La frontera `RTDAExtensionRuntime` es in-process; falta opcion de runtime como
+- La frontera `RTDAComplementRuntime` es in-process; falta opcion de runtime como
   proceso local persistente independiente de la app.
 - No hay base de datos persistente.
 - No hay CI/CD ni empaquetado release automatizado.

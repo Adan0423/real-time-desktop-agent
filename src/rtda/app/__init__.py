@@ -1,1 +1,1 @@
-"""RTDA debugging app."""
+"""CLI launchers and backward-compatible desktop imports for RTDA."""

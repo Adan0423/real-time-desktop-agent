@@ -9,7 +9,9 @@ meta, propone una accion, la pasa por seguridad, ejecuta o simula, verifica y
 recupera si algo falla.
 
 El agente actual es deterministico y deliberadamente pequeno. No ejecuta cadenas
-largas de acciones autonomas.
+largas de acciones autonomas. La captura y el estado visual deben venir desde
+la frontera del complemento (`rtda.complement`) o desde MCP; la interfaz de
+escritorio no es una dependencia del agente.
 
 ## AgentExecutor
 

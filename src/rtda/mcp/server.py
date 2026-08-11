@@ -4,16 +4,14 @@ import argparse
 from dataclasses import asdict
 from typing import Any
 
-from rtda.actions.engine import ActionEngine
-from rtda.actions.pyautogui_executor import PyAutoGUIActionExecutor
 from rtda.agent.planner import RuleBasedPlanner
 from rtda.capture.diagnostics import monitors_to_dict, run_capture_diagnostic
 from rtda.capture.interface import CaptureConfig
 from rtda.capture.region import Region
-from rtda.capture.windows_capture import WindowsCaptureEngine
+from rtda.complement import RTDAComplementConfig, RTDAComplementRuntime
 from rtda.models.actions import ActionCommand, ActionType
 from rtda.models.state import UIState
-from rtda.perception.uia import UIAConfig, WindowsUIAutomationInspector, summarize_uia_elements
+from rtda.perception.uia import summarize_uia_elements
 from rtda.safety.action_guard import ActionGuard
 from rtda.safety.confirmation import ConfirmationManager
 from rtda.safety.policy import ActionPolicy
@@ -24,8 +22,8 @@ def health() -> dict[str, Any]:
 
 
 def inspect_uia(window_title: str | None = None, max_depth: int = 3, max_elements: int = 120) -> dict[str, Any]:
-    inspector = WindowsUIAutomationInspector(UIAConfig(max_depth=max_depth, max_elements=max_elements))
-    snapshot = inspector.snapshot(window_title=window_title)
+    runtime = RTDAComplementRuntime(RTDAComplementConfig(uia_max_depth=max_depth, uia_max_elements=max_elements))
+    snapshot = runtime.inspect_ui(window_title=window_title)
     return {
         "element_count": snapshot.element_count,
         "latency_ms": snapshot.latency_ms,
@@ -52,8 +50,8 @@ def classify_action(action: str, target: str | None = None, value: str | None = 
 
 
 def capture_monitors() -> dict[str, Any]:
-    capture = WindowsCaptureEngine(CaptureConfig())
-    return {"monitors": monitors_to_dict(capture.list_monitors())}
+    runtime = RTDAComplementRuntime(CaptureConfig())
+    return {"monitors": monitors_to_dict(runtime.list_monitors())}
 
 
 def capture_diagnostic(
@@ -83,15 +81,15 @@ def capture_diagnostic(
         region=region,
         window_title=window_title,
     )
-    capture = WindowsCaptureEngine(config)
-    result = run_capture_diagnostic(capture, config=config, duration_s=duration_s)
+    runtime = RTDAComplementRuntime(RTDAComplementConfig(capture=config, enable_border=False))
+    result = run_capture_diagnostic(runtime, config=config, duration_s=duration_s)
     return result.to_dict()
 
 
 def dry_run_action(action: str, target: str | None = None, value: str | None = None) -> dict[str, Any]:
     command = ActionCommand(action=ActionType(action), target=target, value=value)
-    engine = ActionEngine(executor=PyAutoGUIActionExecutor(dry_run=True))
-    result = engine.execute(command)
+    runtime = RTDAComplementRuntime(RTDAComplementConfig(dry_run_actions=True))
+    result = runtime.execute_action(command)
     return result.model_dump(mode="json")
 
 

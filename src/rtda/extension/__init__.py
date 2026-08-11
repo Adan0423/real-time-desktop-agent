@@ -1,5 +1,10 @@
-"""Runtime boundary for the RTDA AI extension/complement."""
+"""Compatibility exports for the RTDA IA complement runtime."""
 
-from rtda.extension.runtime import RTDAExtensionRuntime
+from rtda.extension.runtime import (
+    RTDAComplementConfig,
+    RTDAComplementRuntime,
+    RTDAExtensionRuntime,
+    RTDAObservation,
+)
 
-__all__ = ["RTDAExtensionRuntime"]
+__all__ = ["RTDAComplementConfig", "RTDAComplementRuntime", "RTDAExtensionRuntime", "RTDAObservation"]

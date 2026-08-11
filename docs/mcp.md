@@ -24,6 +24,8 @@ No expone ejecucion real de acciones. `dry_run_action` usa el mismo motor de seg
 
 Este modo es para hosts compatibles con MCP. RTDA corre como proceso local y el
 host externo llama tools por stdio, HTTP streamable o SSE segun soporte del host.
+La app de escritorio consume la misma frontera funcional, pero desde
+`RTDAComplementRuntime` en proceso para facilitar pruebas visuales.
 
 ```powershell
 python -m rtda.mcp.server --transport stdio

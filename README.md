@@ -11,7 +11,7 @@
 
 El proyecto se usa de dos maneras:
 
-- **RTDA Extension/Complement**: capa funcional para Claude Desktop, ChatGPT, Codex u otros hosts compatibles con MCP.
+- **RTDA Complement**: capa funcional para Claude Desktop, ChatGPT, Codex u otros hosts compatibles con MCP.
 - **RTDA Desktop Control Surface**: app propia de escritorio para operar, visualizar y probar el complemento local con preview, metricas, overlay verde y panel IA con token.
 
 RTDA esta pensado para desarrolladores, investigadores y builders que quieren crear agentes de escritorio locales, medir captura de baja latencia y exponer herramientas seguras a clientes de IA.
@@ -35,7 +35,7 @@ RTDA esta pensado para desarrolladores, investigadores y builders que quieren cr
 ```mermaid
 flowchart LR
     Screen["Pantalla / Monitor / Ventana"] --> Capture["RTDA Capture Engine"]
-    Capture --> Runtime["RTDA Extension Runtime"]
+    Capture --> Runtime["RTDA Complement Runtime"]
     Runtime --> Buffer["Frame Buffer"]
     Runtime --> Metrics["FPS / Latencia / Drops"]
     Runtime --> MCP["MCP Server / MCPB"]
@@ -53,6 +53,7 @@ flowchart LR
 - Captura monitor, region o ventana especifica en Windows 11.
 - Mantiene un frame buffer en memoria para consumo en tiempo real.
 - Mide FPS, resolucion, latencia, frames descartados y errores.
+- Expone mouse, teclado, vision y border desde una API de complemento.
 - Muestra preview local con una interfaz de escritorio redisenada.
 - Dibuja un marco verde para saber que area esta observando RTDA.
 - Incluye un control flotante en segundo plano para ver estado e interactuar.
@@ -113,7 +114,20 @@ python -m rtda.app.main --capture-diagnostic --duration 4 --backend dxgi --targe
 python -m rtda.mcp.server --transport stdio
 ```
 
-9. Ejecuta pruebas.
+9. Consume RTDA como complemento desde Python.
+
+```python
+from rtda.complement import RTDAComplementRuntime
+from rtda.capture.interface import CaptureConfig
+
+runtime = RTDAComplementRuntime(CaptureConfig(backend="dxgi", target_fps=60))
+runtime.start_capture()
+observation = runtime.observe()
+runtime.hotkey("ctrl", "l")
+runtime.stop_capture()
+```
+
+10. Ejecuta pruebas.
 
 ```powershell
 python -m pytest
@@ -138,9 +152,10 @@ RTDA no carga `.env` automaticamente. Usa estas variables si integras los client
 real-time-desktop-agent/
 |-- src/rtda/
 |   |-- ai/              # Cliente OpenAI/Anthropic usado por la app propia
-|   |-- app/             # CLI y dashboard PySide6
+|   |-- app/             # CLI launchers y shims de compatibilidad
+|   |-- complement/      # API publica del complemento IA RTDA
 |   |-- desktop/         # Control flotante y componentes de escritorio
-|   |-- extension/       # Fachada funcional que consume UI/MCP/hosts IA
+|   |-- extension/       # Alias compatible hacia complement/
 |   |-- capture/         # ScreenCapture, DXGI/WGC, buffer y diagnosticos
 |   |-- overlay/         # Marco verde y geometria monitor/region/ventana
 |   |-- perception/      # OpenCV, UIA, OCR y vision model adapters
@@ -167,6 +182,7 @@ El estado por modulo vive en [docs/PROGRESS.md](docs/PROGRESS.md) y los pendient
 ## Documentacion
 
 - [Arquitectura](docs/ARCHITECTURE.md)
+- [Estructura para desarrolladores](docs/STRUCTURE.md)
 - [Progreso](docs/PROGRESS.md)
 - [Agentes](docs/AGENTS.md)
 - [Skills](docs/SKILLS.md)

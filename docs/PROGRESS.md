@@ -6,8 +6,9 @@ Ultima actualizacion: 2026-08-11
 
 RTDA tiene implementado el nucleo local de captura, metricas, preview, overlay,
 percepcion inicial, acciones seguras, agente deterministico y servidor MCP. La
-arquitectura ya separa el complemento funcional (`rtda.extension`) de la app de
-escritorio (`rtda.app` y `rtda.desktop`).
+arquitectura ya separa el complemento funcional (`rtda.complement`) de la app de
+escritorio (`rtda.desktop`). `rtda.app` queda como launcher y `rtda.extension`
+como ruta compatible para imports antiguos.
 
 La ruta de IA con token existe para texto/contexto, pero aun no envia frames
 multimodales a proveedores externos.
@@ -20,15 +21,16 @@ multimodales a proveedores externos.
 | Captura ventana WGC | Implementado | `--window-title`, backend `wgc` |
 | Seleccion de region | Implementado | `Region`, CLI `--region`, inputs en dashboard |
 | Frame buffer | Implementado | `FrameBuffer`, tests |
-| Runtime de complemento | Implementado | `RTDAExtensionRuntime`, `tests/test_extension_runtime.py` |
+| Runtime de complemento | Implementado | `RTDAComplementRuntime`, `tests/test_extension_runtime.py` |
 | Desktop Control Surface | Implementado | `CaptureDashboard`, instancia offscreen verificada |
 | Control flotante | Implementado | `RTDAFloatingControl`, `tests/test_desktop_floating.py` |
 | Preview local | Implementado | `CaptureDashboard` |
 | FPS / latencia / drops | Implementado | `CaptureMetrics`, `docs/performance.md` |
 | Overlay verde | Implementado | `rtda.overlay`, prueba offscreen |
 | Diagnostico de captura | Implementado | `rtda.capture.diagnostics` |
-| OpenCV change detection | Implementado | `OpenCVChangeDetector` |
+| OpenCV change detection | Implementado | `OpenCVChangeDetector`, `RTDAComplementRuntime.detect_changes()` |
 | Windows UI Automation | Implementado | `WindowsUIAutomationInspector` |
+| Mouse/teclado runtime | Implementado | `RTDAComplementRuntime.click()`, `hotkey()`, `press()` |
 | OCR adapter | Parcial | Adapter y tests fake; runtime Paddle depende de entorno |
 | Vision ONNX adapter | Parcial | Wrapper ONNX + vision estructurada |
 | Acciones seguras | Parcial | Motor, risk policy y dry-run; ejecucion real requiere mas hardening |
@@ -51,13 +53,13 @@ python -m pytest
 Resultado local del 2026-08-11:
 
 ```text
-43 passed
+47 passed
 ```
 
 Verificaciones adicionales:
 
 ```powershell
-python -m compileall src\rtda\app\dashboard.py src\rtda\desktop src\rtda\extension
+python -m compileall src\rtda tests
 ```
 
 ```text
@@ -78,7 +80,7 @@ Cobertura funcional actual por archivos:
 - MCP server;
 - AI client;
 - overlay geometry;
-- runtime de extension;
+- runtime de complemento;
 - control flotante Qt.
 
 ## Siguiente Hito

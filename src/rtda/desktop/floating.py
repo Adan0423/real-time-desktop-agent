@@ -4,11 +4,11 @@ from collections.abc import Callable
 
 
 class RTDAFloatingControl:
-    """Always-on-top control for the RTDA extension runtime.
+    """Always-on-top control for the RTDA complement runtime.
 
     The floating control intentionally stays separate from the main dashboard:
     it is a compact background indicator that lets the user see whether the
-    RTDA extension/complement is alive and perform the core runtime actions.
+    RTDA complement is alive and perform the core runtime actions.
     """
 
     def __init__(
@@ -102,6 +102,10 @@ class RTDAFloatingControl:
         self.widget.raise_()
 
     def hide(self) -> None:
+        self.widget.hide()
+
+    def shutdown(self) -> None:
+        self.timer.stop()
         self.widget.hide()
 
     def set_status(

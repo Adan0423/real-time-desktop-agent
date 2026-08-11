@@ -5,7 +5,11 @@ import numpy as np
 from rtda.capture.frame import Frame
 from rtda.capture.frame_buffer import FrameBuffer
 from rtda.capture.interface import CaptureConfig, CaptureStats, MonitorInfo
-from rtda.extension import runtime as runtime_module
+from rtda.complement import runtime as runtime_module
+from rtda.complement import RTDAComplementConfig, RTDAComplementRuntime
+from rtda.extension import RTDAExtensionRuntime
+from rtda.models.actions import ActionStatus
+from rtda.models.perception import BoundingBox
 
 
 class FakeCaptureEngine:
@@ -20,9 +24,9 @@ class FakeCaptureEngine:
         self.latest = Frame(
             timestamp=10.0,
             source_timestamp=9.995,
-            width=2,
-            height=2,
-            data=np.zeros((2, 2, 4), dtype=np.uint8),
+            width=32,
+            height=32,
+            data=np.zeros((32, 32, 4), dtype=np.uint8),
             sequence=1,
         )
         self.buffer.push(self.latest)
@@ -73,11 +77,11 @@ class FakeCaptureEngine:
         )
 
 
-def test_extension_runtime_wraps_capture_lifecycle(monkeypatch) -> None:
+def test_complement_runtime_wraps_capture_lifecycle(monkeypatch) -> None:
     FakeCaptureEngine.instances = []
     monkeypatch.setattr(runtime_module, "WindowsCaptureEngine", FakeCaptureEngine)
 
-    runtime = runtime_module.RTDAExtensionRuntime(CaptureConfig(target_fps=30))
+    runtime = runtime_module.RTDAComplementRuntime(CaptureConfig(target_fps=30))
 
     assert runtime.running is False
     assert runtime.paused is False
@@ -110,12 +114,80 @@ def test_start_capture_replaces_previous_capture(monkeypatch) -> None:
     FakeCaptureEngine.instances = []
     monkeypatch.setattr(runtime_module, "WindowsCaptureEngine", FakeCaptureEngine)
 
-    runtime = runtime_module.RTDAExtensionRuntime()
+    runtime = runtime_module.RTDAComplementRuntime(RTDAComplementConfig(dry_run_actions=False))
     first = FakeCaptureEngine.instances[-1]
 
     runtime.start_capture(CaptureConfig(target_fps=30))
 
     assert first.stopped is True
     assert runtime.config.target_fps == 30
+    assert runtime.settings.dry_run_actions is False
     assert FakeCaptureEngine.instances[-1] is not first
     assert FakeCaptureEngine.instances[-1].started is True
+
+
+def test_extension_runtime_import_path_remains_compatible() -> None:
+    assert issubclass(RTDAExtensionRuntime, RTDAComplementRuntime)
+
+
+def test_complement_runtime_exposes_mouse_keyboard_and_vision(monkeypatch) -> None:
+    FakeCaptureEngine.instances = []
+    monkeypatch.setattr(runtime_module, "WindowsCaptureEngine", FakeCaptureEngine)
+
+    runtime = runtime_module.RTDAComplementRuntime(
+        RTDAComplementConfig(capture=CaptureConfig(max_buffer_size=4), dry_run_actions=True)
+    )
+    runtime.start_capture()
+    runtime.buffer.push(
+        Frame(
+            timestamp=10.1,
+            source_timestamp=10.095,
+            width=32,
+            height=32,
+            data=np.full((32, 32, 4), 255, dtype=np.uint8),
+            sequence=2,
+        )
+    )
+
+    click = runtime.click(bbox=BoundingBox(0, 0, 2, 2))
+    hotkey = runtime.hotkey("ctrl", "l")
+    change = runtime.detect_changes()
+
+    assert click.status == ActionStatus.DRY_RUN
+    assert click.metadata["x"] == 1
+    assert hotkey.status == ActionStatus.DRY_RUN
+    assert change is not None
+    assert change.changed is True
+
+
+def test_complement_border_is_explicit_capability(monkeypatch) -> None:
+    FakeCaptureEngine.instances = []
+    monkeypatch.setattr(runtime_module, "WindowsCaptureEngine", FakeCaptureEngine)
+
+    class FakeBorder:
+        def __init__(self) -> None:
+            self.rect = None
+            self.hidden = False
+
+        def show_rect(self, rect) -> None:
+            self.rect = rect
+
+        def hide(self) -> None:
+            self.hidden = True
+
+    border = FakeBorder()
+    runtime = runtime_module.RTDAComplementRuntime(
+        RTDAComplementConfig(capture=CaptureConfig(), enable_border=True)
+    )
+    monkeypatch.setattr(runtime, "_create_border_overlay", lambda: border)
+
+    runtime.start_capture()
+    rect = runtime.refresh_border()
+
+    assert rect is not None
+    assert border.rect == rect
+    assert rect.width == 1920
+    assert rect.height == 1080
+
+    runtime.stop_capture()
+    assert border.hidden is True
