@@ -9,7 +9,7 @@ es una forma de consumirlo, no el centro de la arquitectura.
 
 ```text
 rtda.complement  -> API publica del complemento IA
-rtda.desktop     -> UI propia, dashboard y flotante
+desktop/         -> UI propia, dashboard y flotante
 rtda.app         -> launchers CLI y compatibilidad
 rtda.mcp         -> transporte para hosts IA externos
 ```
@@ -24,7 +24,7 @@ rtda.mcp         -> transporte para hosts IA externos
 | `src/rtda/actions/` | Mouse, teclado, scroll, resolver y executor PyAutoGUI | `models`, `safety` |
 | `src/rtda/overlay/` | Marco verde y geometria del area observada | `capture` |
 | `src/rtda/mcp/` | Tools MCP para Claude/ChatGPT/Codex y otros hosts | `complement` o modulos core |
-| `src/rtda/desktop/` | Dashboard PySide6 y control flotante | `complement`, `ai` |
+| `desktop/` | Dashboard PySide6 y control flotante | `src/rtda/complement`, `src/rtda/ai` |
 | `src/rtda/app/` | CLI launchers y shims antiguos | `desktop`, `capture`, `mcp` |
 | `src/rtda/extension/` | Compatibilidad hacia `rtda.complement` | `complement` |
 
@@ -63,7 +63,7 @@ runtime.refresh_border()
 ## Reglas de contribucion tecnica
 
 - Agrega capacidades reutilizables en `rtda.complement` o en modulos core, no en
-  `rtda.desktop`.
+  `desktop/`.
 - La UI puede consumir el complemento, pero el complemento no debe depender de
   widgets del dashboard.
 - Mantener mouse/teclado detras de `ActionGuard` y `PyAutoGUIActionExecutor`.

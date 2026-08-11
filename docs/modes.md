@@ -13,7 +13,7 @@ RTDA Complement
 La app local sirve para pruebas visuales controladas:
 
 ```powershell
-python -m rtda.app.main
+python -m desktop.main
 ```
 
 Incluye:
@@ -32,9 +32,9 @@ escribe secretos en el repositorio.
 Opciones utiles:
 
 ```powershell
-python -m rtda.app.main --hide-overlay
-python -m rtda.app.main --hide-floating
-python -m rtda.app.main --enable-perception-tools
+python -m desktop.main --hide-overlay
+python -m desktop.main --hide-floating
+python -m desktop.main --enable-perception-tools
 ```
 
 ## Complemento para IA externa

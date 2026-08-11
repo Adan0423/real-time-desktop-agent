@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 import time
 from dataclasses import asdict
 
@@ -13,7 +12,7 @@ from rtda.capture.windows_capture import WindowsCaptureEngine
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="RTDA Capture Engine")
+    parser = argparse.ArgumentParser(description="RTDA complement capture CLI")
     parser.add_argument("--backend", choices=["dxgi", "wgc"], default="dxgi")
     parser.add_argument("--target-fps", type=int, default=60)
     parser.add_argument("--monitor-index", type=int, default=0)
@@ -24,21 +23,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--list-monitors", action="store_true")
     parser.add_argument("--capture-diagnostic", action="store_true")
     parser.add_argument("--diagnostic-pause", type=float, default=0.25)
-    parser.add_argument(
-        "--enable-perception-tools",
-        action="store_true",
-        help="Enable later-phase OpenCV/UIA controls in the GUI. Disabled by default for Phase 1.",
-    )
-    parser.add_argument(
-        "--hide-overlay",
-        action="store_true",
-        help="Hide the green capture-target overlay in GUI mode.",
-    )
-    parser.add_argument(
-        "--hide-floating",
-        action="store_true",
-        help="Hide the always-on-top RTDA background control in GUI mode.",
-    )
     parser.add_argument("--detect-changes", action="store_true")
     parser.add_argument("--inspect-uia", action="store_true")
     parser.add_argument("--uia-window-title", default=None)
@@ -129,35 +113,6 @@ def run_headless(
     return 0
 
 
-def run_gui(
-    config: CaptureConfig,
-    *,
-    enable_perception_tools: bool = False,
-    show_capture_overlay: bool = True,
-    show_floating_control: bool = True,
-) -> int:
-    try:
-        from PySide6.QtWidgets import QApplication
-    except ImportError as exc:
-        raise RuntimeError(
-            "Missing optional dependency 'PySide6'. "
-            "Install with: python -m pip install -e .[gui]"
-        ) from exc
-
-    from desktop.dashboard import CaptureDashboard
-
-    app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(not show_floating_control)
-    dashboard = CaptureDashboard(
-        config,
-        enable_perception_tools=enable_perception_tools,
-        show_capture_overlay=show_capture_overlay,
-        show_floating_control=show_floating_control,
-    )
-    dashboard.show()
-    return app.exec()
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -186,12 +141,8 @@ def main(argv: list[str] | None = None) -> int:
             uia_max_depth=args.uia_max_depth,
             uia_max_elements=args.uia_max_elements,
         )
-    return run_gui(
-        config,
-        enable_perception_tools=args.enable_perception_tools,
-        show_capture_overlay=not args.hide_overlay,
-        show_floating_control=not args.hide_floating,
-    )
+    parser.print_help()
+    return 0
 
 
 if __name__ == "__main__":

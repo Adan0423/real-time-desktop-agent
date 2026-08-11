@@ -86,14 +86,14 @@ python -m pip install -e ".[capture,gui,dev]"
 4. Ejecuta la app propia con overlay verde y flotante.
 
 ```powershell
-python -m rtda.app.main
+python -m desktop.main
 ```
 
 5. Ejecuta la app sin overlay o sin flotante.
 
 ```powershell
-python -m rtda.app.main --hide-overlay
-python -m rtda.app.main --hide-floating
+python -m desktop.main --hide-overlay
+python -m desktop.main --hide-floating
 ```
 
 6. Lista monitores detectados.
@@ -152,9 +152,8 @@ RTDA no carga `.env` automaticamente. Usa estas variables si integras los client
 real-time-desktop-agent/
 |-- src/rtda/
 |   |-- ai/              # Cliente OpenAI/Anthropic usado por la app propia
-|   |-- app/             # CLI launchers y shims de compatibilidad
 |   |-- complement/      # API publica del complemento IA RTDA
-|   |-- desktop/         # Control flotante y componentes de escritorio
+|   |-- app/             # CLI launchers y shims de compatibilidad
 |   |-- extension/       # Alias compatible hacia complement/
 |   |-- capture/         # ScreenCapture, DXGI/WGC, buffer y diagnosticos
 |   |-- overlay/         # Marco verde y geometria monitor/region/ventana
@@ -166,6 +165,7 @@ real-time-desktop-agent/
 |   |-- models/          # Modelos de datos Pydantic/dataclasses
 |   |-- performance/     # Metricas de captura y procesamiento
 |   `-- state/           # Estado observable del agente
+|-- desktop/             # App de escritorio separada del complemento
 |-- docs/                # Documentacion tecnica y roadmap
 |-- tests/               # Suite pytest
 |-- packaging/mcpb/      # Manifiesto base para Claude Desktop MCPB

@@ -53,7 +53,7 @@ flowchart TD
 | Captura | `src/rtda/capture/` | Monitores, DXGI/WGC, frame buffer y metricas |
 | Complemento | `src/rtda/complement/` | API publica para captura, vision, acciones y border |
 | Compatibilidad | `src/rtda/extension/` | Alias para imports antiguos hacia `rtda.complement` |
-| Escritorio | `src/rtda/desktop/` | Dashboard, preview, control flotante y panel de pruebas IA |
+| Escritorio | `desktop/` | Dashboard, preview, control flotante y panel de pruebas IA |
 | Launchers | `src/rtda/app/` | CLI y shims de compatibilidad |
 | Overlay | `src/rtda/overlay/` | Marco verde del area observada |
 | MCP | `src/rtda/mcp/`, `mcpb_server.py` | Tools para hosts IA externos y bundle Claude Desktop |

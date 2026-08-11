@@ -1,1 +1,1 @@
-"""CLI launchers and backward-compatible desktop imports for RTDA."""
+"""Command-line entrypoints for the RTDA complement/core."""
