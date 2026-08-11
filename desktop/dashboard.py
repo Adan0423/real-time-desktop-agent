@@ -9,9 +9,10 @@ from rtda.ai.client import AIClient, AIClientConfig, AIClientError, default_mode
 from rtda.capture.interface import CaptureConfig
 from rtda.capture.region import Region
 from rtda.complement import RTDAComplementRuntime
-from rtda.desktop.floating import RTDAFloatingControl
 from rtda.overlay.geometry import capture_rect_from_config
 from rtda.overlay.qt import GreenCaptureOverlay
+
+from desktop.floating import RTDAFloatingControl
 
 
 class CaptureDashboard:

@@ -9,7 +9,7 @@ def test_floating_control_status_and_visibility() -> None:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     widgets = pytest.importorskip("PySide6.QtWidgets")
 
-    from rtda.desktop.floating import RTDAFloatingControl
+    from desktop.floating import RTDAFloatingControl
 
     app = widgets.QApplication.instance() or widgets.QApplication([])
     events: list[str] = []
@@ -53,7 +53,7 @@ def test_dashboard_closes_to_floating_control() -> None:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     widgets = pytest.importorskip("PySide6.QtWidgets")
 
-    from rtda.desktop.dashboard import CaptureDashboard
+    from desktop.dashboard import CaptureDashboard
 
     app = widgets.QApplication.instance() or widgets.QApplication([])
     dashboard = CaptureDashboard(show_floating_control=True)

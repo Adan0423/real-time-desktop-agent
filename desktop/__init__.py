@@ -5,11 +5,11 @@ __all__ = ["CaptureDashboard", "RTDAFloatingControl"]
 
 def __getattr__(name: str):
     if name == "CaptureDashboard":
-        from rtda.desktop.dashboard import CaptureDashboard
+        from desktop.dashboard import CaptureDashboard
 
         return CaptureDashboard
     if name == "RTDAFloatingControl":
-        from rtda.desktop.floating import RTDAFloatingControl
+        from desktop.floating import RTDAFloatingControl
 
         return RTDAFloatingControl
     raise AttributeError(name)
