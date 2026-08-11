@@ -7,7 +7,11 @@ La carpeta `src/rtda/` es el complemento/core para IA. Esta carpeta `desktop/`
 es solo la interfaz propia para probar y controlar ese complemento:
 
 - `dashboard.py`: ventana principal PySide6.
-- `floating.py`: control flotante en segundo plano.
+- `runtime_bridge.py`: adaptador desktop hacia `RTDAComplementRuntime`.
+- `ai_bridge.py`: llamadas IA manuales fuera del event loop Qt.
+- `floating.py`: control flotante compacto en segundo plano.
+- `theme.py`: stylesheet central del dashboard.
+- `ui/`: paneles y widgets reutilizables de PySide6.
 - `main.py`: launcher de la app desktop.
 
 Ejecutar desde la raiz del repo:

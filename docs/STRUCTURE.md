@@ -24,7 +24,7 @@ rtda.mcp         -> transporte para hosts IA externos
 | `src/rtda/actions/` | Mouse, teclado, scroll, resolver y executor PyAutoGUI | `models`, `safety` |
 | `src/rtda/overlay/` | Marco verde y geometria del area observada | `capture` |
 | `src/rtda/mcp/` | Tools MCP para Claude/ChatGPT/Codex y otros hosts | `complement` o modulos core |
-| `desktop/` | Dashboard PySide6 y control flotante | `src/rtda/complement`, `src/rtda/ai` |
+| `desktop/` | App PySide6 independiente: dashboard, floating y modulos UI | `src/rtda/complement`, `src/rtda/ai` |
 | `src/rtda/app/` | CLI launchers y shims antiguos | `desktop`, `capture`, `mcp` |
 | `src/rtda/extension/` | Compatibilidad hacia `rtda.complement` | `complement` |
 | `plugins/real-time-desktop-agent/` | Plugin local ChatGPT/Codex | MCP server de `src/rtda` |
@@ -74,3 +74,23 @@ runtime.refresh_border()
 - Cualquier feature nueva debe tener una prueba de runtime o de modulo core.
 - `rtda.extension` queda solo para compatibilidad; nuevos imports deben usar
   `rtda.complement`.
+
+## Estructura desktop
+
+```text
+desktop/
+|-- main.py             # launcher CLI de la app propia
+|-- dashboard.py        # orquestador de ventana y senales Qt
+|-- runtime_bridge.py   # consumo desktop del complemento RTDA
+|-- ai_bridge.py        # llamadas IA manuales en background
+|-- floating.py         # control flotante compacto
+|-- theme.py            # QSS centralizado
+`-- ui/
+    |-- panels.py       # sidebar, objetivo, runtime e IA
+    |-- preview.py      # superficie de preview realtime
+    |-- widgets.py      # piezas reutilizables compactas
+    `-- floating_widgets.py
+```
+
+Regla: `desktop/` puede importar `rtda.complement`; `src/rtda/` no debe importar
+`desktop/`.

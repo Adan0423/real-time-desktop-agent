@@ -165,7 +165,12 @@ real-time-desktop-agent/
 |   |-- models/          # Modelos de datos Pydantic/dataclasses
 |   |-- performance/     # Metricas de captura y procesamiento
 |   `-- state/           # Estado observable del agente
-|-- desktop/             # App de escritorio separada del complemento
+|-- desktop/             # App de escritorio separada: dashboard, floating y UI
+|   |-- ui/              # Paneles/widgets PySide6 reutilizables
+|   |-- dashboard.py     # Orquestador compacto de la ventana
+|   |-- runtime_bridge.py # Adaptador hacia RTDAComplementRuntime
+|   |-- ai_bridge.py     # Pruebas IA manuales con token
+|   `-- floating.py      # Control flotante en segundo plano
 |-- docs/                # Documentacion tecnica y roadmap
 |-- tests/               # Suite pytest
 |-- packaging/mcpb/      # Manifiesto base para Claude Desktop MCPB

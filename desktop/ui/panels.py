@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from rtda.ai.client import default_model
+from rtda.ai.client import AIClientConfig, default_model
 from rtda.capture.interface import CaptureConfig, CaptureStats, MonitorInfo
 from rtda.capture.region import Region
 
@@ -22,11 +22,21 @@ class TargetSelection:
 class ControlSidebar:
     """Compact left rail for local desktop testing of the RTDA complement."""
 
-    def __init__(self, *, config: CaptureConfig, enable_perception_tools: bool) -> None:
+    def __init__(
+        self,
+        *,
+        config: CaptureConfig,
+        enable_perception_tools: bool,
+        show_capture_overlay: bool = True,
+    ) -> None:
         from PySide6.QtWidgets import QFrame, QTabWidget, QVBoxLayout
 
         self.status = StatusPill("Extension local lista")
-        self.target = TargetPanel(config=config, enable_perception_tools=enable_perception_tools)
+        self.target = TargetPanel(
+            config=config,
+            enable_perception_tools=enable_perception_tools,
+            show_capture_overlay=show_capture_overlay,
+        )
         self.runtime = RuntimePanel(enable_perception_tools=enable_perception_tools)
         self.ai = AiPanel()
 
@@ -79,7 +89,13 @@ class ControlSidebar:
 
 
 class TargetPanel:
-    def __init__(self, *, config: CaptureConfig, enable_perception_tools: bool) -> None:
+    def __init__(
+        self,
+        *,
+        config: CaptureConfig,
+        enable_perception_tools: bool,
+        show_capture_overlay: bool,
+    ) -> None:
         from PySide6.QtWidgets import QCheckBox, QComboBox, QGridLayout, QHBoxLayout, QLineEdit, QSpinBox
 
         self.monitor_combo = QComboBox()
@@ -93,7 +109,7 @@ class TargetPanel:
         self.window_title.setPlaceholderText("Titulo de ventana para WGC")
         self.region_enabled = QCheckBox("Region")
         self.overlay_enabled = QCheckBox("Marco verde")
-        self.overlay_enabled.setChecked(True)
+        self.overlay_enabled.setChecked(show_capture_overlay)
         self.change_detection_enabled = QCheckBox("Cambios")
         self.change_detection_enabled.setChecked(False)
         self.left_spin = coord_spin(config.region.left if config.region else 0)
@@ -101,6 +117,7 @@ class TargetPanel:
         self.right_spin = coord_spin(config.region.right if config.region else 3840)
         self.bottom_spin = coord_spin(config.region.bottom if config.region else 2160)
         self.region_enabled.setChecked(config.region is not None)
+        self.region_enabled.toggled.connect(self._set_region_controls_enabled)
 
         fields = QGridLayout()
         fields.setHorizontalSpacing(8)
@@ -142,6 +159,7 @@ class TargetPanel:
         fields.addLayout(region, 5, 0, 1, 2)
 
         self.widget = SectionPanel("Objetivo", fields).widget
+        self._set_region_controls_enabled(self.region_enabled.isChecked())
 
     def set_monitors(self, monitors: list[MonitorInfo]) -> None:
         self.monitor_combo.clear()
@@ -172,6 +190,10 @@ class TargetPanel:
             region=region,
             show_border=self.overlay_enabled.isChecked(),
         )
+
+    def _set_region_controls_enabled(self, enabled: bool) -> None:
+        for widget in (self.left_spin, self.top_spin, self.right_spin, self.bottom_spin):
+            widget.setEnabled(enabled)
 
 
 class RuntimePanel:

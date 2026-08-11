@@ -22,9 +22,9 @@ multimodales a proveedores externos.
 | Seleccion de region | Implementado | `Region`, CLI `--region`, inputs en dashboard |
 | Frame buffer | Implementado | `FrameBuffer`, tests |
 | Runtime de complemento | Implementado | `RTDAComplementRuntime`, `tests/test_extension_runtime.py` |
-| Desktop Control Surface | Implementado | `CaptureDashboard`, instancia offscreen verificada |
-| Control flotante | Implementado | `RTDAFloatingControl`, `tests/test_desktop_floating.py` |
-| Preview local | Implementado | `CaptureDashboard` |
+| Desktop Control Surface | Implementado | `CaptureDashboard` compacto, `desktop/ui/*`, instancia offscreen verificada |
+| Control flotante | Implementado | `RTDAFloatingControl` compacto, `tests/test_desktop_floating.py` |
+| Preview local | Implementado | `PreviewPanel` en `desktop/ui/preview.py` |
 | FPS / latencia / drops | Implementado | `CaptureMetrics`, `docs/performance.md` |
 | Overlay verde | Implementado | `rtda.overlay`, prueba offscreen |
 | Diagnostico de captura | Implementado | `rtda.capture.diagnostics` |
