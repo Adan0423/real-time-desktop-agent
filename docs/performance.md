@@ -59,3 +59,13 @@ La validacion headless con DXGI fuera del sandbox produjo captura real a `1366x7
 Fase 2 medida con frames reales aislados de `1366x768`: OpenCV quedo cerca de `5.8 ms` despues del warmup con `downscale=0.5`.
 
 Fase 3 medida con `--inspect-uia --uia-max-depth 2`: snapshot UIA de escritorio con 10 elementos utiles, 0 errores y aproximadamente `663 ms`. UIA debe ejecutarse bajo demanda o como respuesta a cambios, no por frame.
+
+Diagnostico del Primer Objetivo medido el 2026-08-11:
+
+- Monitor completo DXGI: `10` frames en `3 s`, `1366x768`, `2.53 FPS`, 0 errores.
+- Region DXGI: `6` frames en `2 s`, `320x240`, `2.53 FPS`, 0 errores.
+- Ventana WGC `ChatGPT`: `55` frames en `3 s`, `1382x736`, `15.77 FPS`, 0 errores.
+
+La pantalla estaba casi estatica durante esta medicion; estos valores validan
+la ruta funcional y las metricas. Para benchmark de techo se debe repetir con
+contenido animado o una ventana que invalide frames continuamente.

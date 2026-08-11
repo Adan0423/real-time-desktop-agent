@@ -13,3 +13,4 @@ dist/
 .env
 captures/
 *.log
+PROMPT-AGENT.md

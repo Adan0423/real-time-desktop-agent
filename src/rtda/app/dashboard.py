@@ -2,18 +2,20 @@ from __future__ import annotations
 
 import time
 from dataclasses import replace
+from typing import Any
 
 from rtda.capture.interface import CaptureConfig
 from rtda.capture.region import Region
 from rtda.capture.windows_capture import WindowsCaptureEngine
-from rtda.models.perception import ChangeDetectionResult
-from rtda.perception.change_detector import FrameChangeProcessor
-from rtda.perception.opencv_detector import OpenCVChangeDetector
-from rtda.perception.uia import UIAConfig, WindowsUIAutomationInspector
 
 
 class CaptureDashboard:
-    def __init__(self, config: CaptureConfig | None = None) -> None:
+    def __init__(
+        self,
+        config: CaptureConfig | None = None,
+        *,
+        enable_perception_tools: bool = False,
+    ) -> None:
         try:
             from PySide6.QtCore import Qt, QTimer
             from PySide6.QtGui import QImage, QPainter, QPen, QPixmap
@@ -44,10 +46,12 @@ class CaptureDashboard:
         self.QWidget = QWidget
 
         self._config = config or CaptureConfig()
+        self._enable_perception_tools = enable_perception_tools
         self._capture = WindowsCaptureEngine(self._config)
-        self._change_processor = FrameChangeProcessor(OpenCVChangeDetector())
-        self._uia_inspector = WindowsUIAutomationInspector(UIAConfig(max_depth=3, max_elements=120))
-        self._latest_change: ChangeDetectionResult | None = None
+        self._change_processor: Any | None = None
+        self._uia_inspector: Any | None = None
+        self._latest_change: Any | None = None
+        self._reset_perception_tools()
 
         self.widget = QWidget()
         self.widget.setWindowTitle("RTDA Capture Engine")
@@ -64,7 +68,7 @@ class CaptureDashboard:
         self.window_title.setPlaceholderText("Window title for WGC")
         self.region_enabled = QCheckBox()
         self.change_detection_enabled = QCheckBox()
-        self.change_detection_enabled.setChecked(True)
+        self.change_detection_enabled.setChecked(False)
         self.left_spin = self._coord_spin()
         self.top_spin = self._coord_spin()
         self.right_spin = self._coord_spin(3840)
@@ -76,6 +80,7 @@ class CaptureDashboard:
         self.uia_button = QPushButton("Inspect UIA")
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
+        self.uia_button.setEnabled(self._enable_perception_tools)
 
         self.metrics_label = QLabel("Capture FPS: 0.0\nResolution: -\nLatency: -\nDropped: 0")
         self.uia_label = QLabel("UIA: not inspected")
@@ -90,7 +95,8 @@ class CaptureDashboard:
         form.addRow("Target FPS", self.fps_spin)
         form.addRow("Window", self.window_title)
         form.addRow("Use region", self.region_enabled)
-        form.addRow("Change detect", self.change_detection_enabled)
+        if self._enable_perception_tools:
+            form.addRow("Change detect", self.change_detection_enabled)
         form.addRow("Left", self.left_spin)
         form.addRow("Top", self.top_spin)
         form.addRow("Right", self.right_spin)
@@ -100,13 +106,15 @@ class CaptureDashboard:
         buttons.addWidget(self.start_button)
         buttons.addWidget(self.pause_button)
         buttons.addWidget(self.stop_button)
-        buttons.addWidget(self.uia_button)
+        if self._enable_perception_tools:
+            buttons.addWidget(self.uia_button)
 
         side = QVBoxLayout()
         side.addLayout(form)
         side.addLayout(buttons)
         side.addWidget(self.metrics_label)
-        side.addWidget(self.uia_label)
+        if self._enable_perception_tools:
+            side.addWidget(self.uia_label)
         side.addStretch(1)
 
         root = QHBoxLayout()
@@ -152,9 +160,7 @@ class CaptureDashboard:
             window_title=window_title,
         )
         self._capture = WindowsCaptureEngine(config)
-        self._change_processor = FrameChangeProcessor(OpenCVChangeDetector())
-        self._uia_inspector = WindowsUIAutomationInspector(UIAConfig(max_depth=3, max_elements=120))
-        self._latest_change = None
+        self._reset_perception_tools()
         self._capture.start()
         self.timer.start()
         self.start_button.setEnabled(False)
@@ -178,13 +184,20 @@ class CaptureDashboard:
             self.pause_button.setText("Pause")
 
     def inspect_uia(self) -> None:
+        if not self._enable_perception_tools:
+            return
+        if self._uia_inspector is None:
+            self._reset_perception_tools()
+        if self._uia_inspector is None:
+            return
         window_title = self.window_title.text().strip() or None
         snapshot = self._uia_inspector.snapshot(window_title=window_title)
-        self._change_processor.metrics.record_uia_snapshot(
-            timestamp=time.perf_counter(),
-            uia_latency_ms=snapshot.latency_ms,
-            element_count=snapshot.element_count,
-        )
+        if self._change_processor is not None:
+            self._change_processor.metrics.record_uia_snapshot(
+                timestamp=time.perf_counter(),
+                uia_latency_ms=snapshot.latency_ms,
+                element_count=snapshot.element_count,
+            )
         error_text = f", errors: {len(snapshot.errors)}" if snapshot.errors else ""
         target = f" ({window_title})" if window_title else ""
         self.uia_label.setText(
@@ -204,30 +217,39 @@ class CaptureDashboard:
     def _update_preview(self) -> None:
         frame = self._capture.latest_frame()
         stats = self._capture.metrics()
-        if self.change_detection_enabled.isChecked():
+        change_enabled = (
+            self._enable_perception_tools
+            and self.change_detection_enabled.isChecked()
+            and self._change_processor is not None
+        )
+        if change_enabled:
             result = self._change_processor.process_buffer(self._capture.buffer)
             self._latest_change = result or self._latest_change
-        processing_stats = self._change_processor.metrics.snapshot()
         resolution = "-"
         if stats.latest_width and stats.latest_height:
             resolution = f"{stats.latest_width}x{stats.latest_height}"
         latency = "-" if stats.capture_latency_ms is None else f"{stats.capture_latency_ms:.2f} ms"
-        self.metrics_label.setText(
-            "\n".join(
+        metric_lines = [
+            f"Capture FPS: {stats.capture_fps:.1f}",
+            f"Resolution: {resolution}",
+            f"Latency: {latency}",
+            f"Dropped: {stats.buffer_dropped_frames}",
+            f"Missed est.: {stats.estimated_missed_frames}",
+            f"Frames: {stats.frames_captured}",
+            f"Errors: {stats.backend_errors}",
+        ]
+        if self._enable_perception_tools and self._change_processor is not None:
+            processing_stats = self._change_processor.metrics.snapshot()
+            metric_lines.extend(
                 [
-                    f"Capture FPS: {stats.capture_fps:.1f}",
-                    f"Resolution: {resolution}",
-                    f"Latency: {latency}",
-                    f"Dropped: {stats.buffer_dropped_frames}",
-                    f"Missed est.: {stats.estimated_missed_frames}",
-                    f"Frames: {stats.frames_captured}",
-                    f"Errors: {stats.backend_errors}",
                     f"Processing FPS: {processing_stats.processing_fps:.1f}",
                     f"OpenCV Latency: {self._format_ms(processing_stats.opencv_latency_ms)}",
                     f"Changed regions: {processing_stats.latest_changed_regions}",
                     f"Changed ratio: {processing_stats.latest_changed_ratio:.4f}",
                 ]
             )
+        self.metrics_label.setText(
+            "\n".join(metric_lines)
         )
         if frame is None:
             return
@@ -241,7 +263,7 @@ class CaptureDashboard:
             bytes_per_line = data.strides[0]
             image = self.QImage(data.data, frame.width, frame.height, bytes_per_line, image_format).copy()
         pixmap = self.QPixmap.fromImage(image)
-        if self.change_detection_enabled.isChecked() and self._latest_change is not None:
+        if change_enabled and self._latest_change is not None:
             pixmap = self._draw_change_regions(pixmap, self._latest_change)
         scaled = pixmap.scaled(
             self.preview_label.size(),
@@ -263,7 +285,21 @@ class CaptureDashboard:
     def _format_ms(value: float | None) -> str:
         return "-" if value is None else f"{value:.2f} ms"
 
-    def _draw_change_regions(self, pixmap, result: ChangeDetectionResult):
+    def _reset_perception_tools(self) -> None:
+        self._latest_change = None
+        self._change_processor = None
+        self._uia_inspector = None
+        if not self._enable_perception_tools:
+            return
+
+        from rtda.perception.change_detector import FrameChangeProcessor
+        from rtda.perception.opencv_detector import OpenCVChangeDetector
+        from rtda.perception.uia import UIAConfig, WindowsUIAutomationInspector
+
+        self._change_processor = FrameChangeProcessor(OpenCVChangeDetector())
+        self._uia_inspector = WindowsUIAutomationInspector(UIAConfig(max_depth=3, max_elements=120))
+
+    def _draw_change_regions(self, pixmap, result: Any):
         if not result.regions:
             return pixmap
         overlay = pixmap.copy()

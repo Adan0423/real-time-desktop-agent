@@ -101,16 +101,38 @@ python -m pip install -e ".[capture,gui,dev]"
 
 ## Uso
 
-Ejecutar la interfaz de debugging:
+Ejecutar la interfaz de captura de Fase 1:
 
 ```powershell
 python -m rtda.app.main
+```
+
+Por defecto esta UI solo activa captura, buffer, preview y metricas de captura.
+Las herramientas de fases posteriores quedan ocultas para mantener aislado el
+Primer Objetivo.
+
+Ejecutar la interfaz de debugging con herramientas de percepcion/UIA:
+
+```powershell
+python -m rtda.app.main --enable-perception-tools
 ```
 
 Ejecutar captura en consola durante cinco segundos:
 
 ```powershell
 python -m rtda.app.main --headless --duration 5 --backend dxgi --target-fps 60
+```
+
+Listar monitores:
+
+```powershell
+python -m rtda.app.main --list-monitors
+```
+
+Validar el Primer Objetivo:
+
+```powershell
+python -m rtda.app.main --capture-diagnostic --duration 4 --backend dxgi --target-fps 30
 ```
 
 Ejecutar captura con deteccion de cambios:

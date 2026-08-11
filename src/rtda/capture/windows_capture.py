@@ -28,6 +28,7 @@ class WindowsCaptureEngine(ScreenCapture):
         self._sequence = 0
         self._native_capture: Any = None
         self._native_control: Any = None
+        self._native_internal_control: Any = None
         self._native_session: Any = None
         self._lock = threading.Lock()
 
@@ -51,9 +52,19 @@ class WindowsCaptureEngine(ScreenCapture):
     def stop(self) -> None:
         self._running.clear()
         control = self._native_control
+        internal_control = self._native_internal_control
         if control is not None and hasattr(control, "stop"):
             try:
                 control.stop()
+            except Exception:
+                self._metrics.record_error()
+        if (
+            internal_control is not None
+            and internal_control is not control
+            and hasattr(internal_control, "stop")
+        ):
+            try:
+                internal_control.stop()
             except Exception:
                 self._metrics.record_error()
         capture = self._native_capture
@@ -73,6 +84,7 @@ class WindowsCaptureEngine(ScreenCapture):
         self._thread = None
         self._native_capture = None
         self._native_control = None
+        self._native_internal_control = None
         self._native_session = None
 
     def pause(self) -> None:
@@ -120,7 +132,7 @@ class WindowsCaptureEngine(ScreenCapture):
 
         @capture.event
         def on_frame_arrived(native_frame: Any, capture_control: Any) -> None:
-            self._native_control = capture_control
+            self._native_internal_control = capture_control
             if not self._running.is_set():
                 capture_control.stop()
                 return
