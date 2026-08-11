@@ -1,83 +1,109 @@
-# Arquitectura Fase 1
+# Arquitectura
 
-## Que vamos a construir
+Ultima actualizacion: 2026-08-11
 
-La Fase 1 crea exclusivamente el **RTDA Capture Engine**:
+## Vision General
 
-- deteccion de monitores disponibles;
-- seleccion de monitor;
-- captura continua;
-- buffer de frames en memoria;
-- preview en PySide6;
-- FPS, resolucion, latencia y frames descartados;
-- pausa, reanudacion y parada;
-- seleccion de region;
-- captura de ventana por titulo cuando se usa Windows Graphics Capture.
+RTDA es una aplicacion local-first para Windows 11. Su nucleo captura pantalla,
+mantiene frames recientes en memoria, mide rendimiento y expone la observacion a
+dos superficies:
 
-## APIs utilizadas
+- app propia con preview, overlay verde y panel IA;
+- servidor MCP para Claude Desktop, ChatGPT u otros hosts compatibles.
 
-La interfaz interna es `ScreenCapture`. El backend inicial es `WindowsCaptureEngine`, que puede usar:
+## Diagrama General
 
-- `wgc`: Windows Graphics Capture via `windows-capture`.
-- `dxgi`: Desktop Duplication API via `windows-capture`.
+```mermaid
+flowchart TD
+    Input["Monitor / Region / Ventana"] --> Capture["WindowsCaptureEngine"]
+    Capture --> Buffer["FrameBuffer"]
+    Capture --> Metrics["CaptureMetrics"]
+    Capture --> Overlay["GreenCaptureOverlay"]
+    Buffer --> Preview["Dashboard PySide6"]
+    Buffer --> Change["OpenCV Change Detection"]
+    Input --> UIA["Windows UI Automation"]
+    Buffer --> OCR["PaddleOCR Adapter"]
+    Buffer --> Vision["ONNX / Structured Vision"]
+    Change --> State["UIState"]
+    UIA --> State
+    OCR --> State
+    Vision --> State
+    State --> Planner["RuleBasedPlanner"]
+    Planner --> Guard["ActionGuard"]
+    Guard --> Executor["PyAutoGUI / Dry Run"]
+    State --> MCP["MCP Server"]
+    MCP --> Hosts["Claude Desktop / otros clientes MCP"]
+    Preview --> AI["AIClient"]
+    AI --> Providers["OpenAI / Anthropic"]
+```
 
-La deteccion de monitores usa `EnumDisplayMonitors` y `GetMonitorInfoW` via `ctypes`, para no depender de la libreria de captura solo para listar pantallas.
+## Decisiones Tecnicas
 
-## Por que
-
-Windows Graphics Capture es el camino moderno para capturar ventana o monitor con consentimiento y sesiones de frames. Desktop Duplication/DXGI es una ruta de baja latencia y estable para captura de monitor. Mantener ambas detras de `ScreenCapture` evita acoplar el agente a una API o paquete especifico.
-
-## Alternativas
-
-| Opcion | Ventaja | Coste |
+| Decision | Eleccion | Motivo |
 | --- | --- | --- |
-| Windows Graphics Capture directo con PyWinRT | Control completo sobre `Direct3D11CaptureFramePool` | Mucha complejidad D3D/WinRT para el primer prototipo |
-| Desktop Duplication directo con C++/ctypes | Maximo control y dirty rects | Alto coste nativo y mayor superficie de errores |
-| `windows-capture` | WGC y DXGI disponibles desde Python, wheel nativa | Dependencia externa nativa |
-| MSS | Muy simple y portable | Mas CPU, menos adecuado para captura continua de baja latencia |
+| Captura de monitor | DXGI Desktop Duplication via `windows-capture` | Baja latencia y buena estabilidad para escritorio Windows |
+| Captura de ventana | Windows Graphics Capture via `windows-capture` | Soporta ventana especifica cuando Windows lo permite |
+| Enumeracion de monitores | Win32 `EnumDisplayMonitors` / `GetMonitorInfoW` via `ctypes` | Evita depender del backend de captura para listar pantallas |
+| UI local | PySide6 | Permite preview, controles y overlay sin navegador |
+| Overlay verde | QWidget transparente topmost | Da feedback visual inmediato de que area observa RTDA |
+| Change detection | OpenCV + NumPy | Rapido, local y medible para diferencias entre frames |
+| UI Automation | `uiautomation` | Lectura estructurada de controles Windows sin OCR |
+| OCR | PaddleOCR opcional | Adapter listo, pero depende de entorno compatible |
+| Vision local | ONNX Runtime adapter | Prepara una ruta para modelos locales sin fijar arquitectura aun |
+| Acciones | PyAutoGUI detras de `ActionGuard` | Mantiene una frontera de seguridad y permite dry-run |
+| Integracion externa | MCP | Protocolo estandar para que hosts IA consuman tools locales |
+| IA app propia | HTTP stdlib hacia OpenAI/Anthropic | Evita SDKs extra y facilita pruebas con transporte fake |
 
-## Como mediremos
+## Flujo de Captura
 
-El modulo `rtda.performance.metrics` mide:
+```mermaid
+sequenceDiagram
+    participant User as Usuario
+    participant App as RTDA App
+    participant Capture as WindowsCaptureEngine
+    participant Buffer as FrameBuffer
+    participant UI as Preview/Metricas
+    User->>App: start monitor/region/window
+    App->>Capture: start()
+    Capture->>Capture: DXGI o WGC frame callback
+    Capture->>Buffer: push(Frame)
+    Capture->>UI: metrics()
+    UI->>Buffer: latest_frame()
+    UI->>User: preview + FPS + latencia + drops
+```
 
-- FPS de captura observado;
-- latencia estimada entre adquisicion y push al buffer;
-- frames recibidos;
-- frames descartados por el buffer;
-- frames perdidos estimados por intervalos largos;
-- errores de backend;
-- uptime.
+## Flujo MCP
 
-## Archivos principales
+```mermaid
+sequenceDiagram
+    participant Host as Claude/Host MCP
+    participant MCP as rtda.mcp.server
+    participant Capture as Capture Engine
+    participant Safety as ActionGuard
+    Host->>MCP: capture_monitors()
+    MCP->>Capture: list_monitors()
+    Capture-->>MCP: MonitorInfo[]
+    MCP-->>Host: JSON
+    Host->>MCP: dry_run_action(click, target)
+    MCP->>Safety: classify + resolve
+    Safety-->>MCP: dry_run result
+    MCP-->>Host: JSON
+```
 
-- `src/rtda/capture/interface.py`
-- `src/rtda/capture/frame.py`
-- `src/rtda/capture/frame_buffer.py`
-- `src/rtda/capture/windows_capture.py`
-- `src/rtda/perception/interface.py`
-- `src/rtda/perception/opencv_detector.py`
-- `src/rtda/perception/change_detector.py`
-- `src/rtda/perception/uia.py`
-- `src/rtda/perception/ocr.py`
-- `src/rtda/perception/vision_model.py`
-- `src/rtda/actions/engine.py`
-- `src/rtda/safety/action_guard.py`
-- `src/rtda/agent/executor.py`
-- `src/rtda/mcp/server.py`
-- `src/rtda/ai/client.py`
-- `src/rtda/overlay/geometry.py`
-- `src/rtda/overlay/windows.py`
-- `src/rtda/overlay/qt.py`
-- `src/rtda/performance/metrics.py`
-- `src/rtda/app/dashboard.py`
-- `src/rtda/app/main.py`
+## Fronteras de Seguridad
 
-## Modos de uso
+- MCP no ejecuta acciones reales: expone `dry_run_action`.
+- `ActionGuard` clasifica acciones en `safe`, `moderate` y `dangerous`.
+- Acciones destructivas como `delete`, `publish`, `send`, `purchase` y `submit`
+  se tratan como peligrosas.
+- El panel IA no recibe frames todavia; usa prompt y contexto textual de
+  metricas.
 
-Encima del Capture Engine existen dos superficies:
+## Limitaciones Actuales
 
-- app propia: captura, preview, borde verde y panel IA local con token;
-- complemento MCP: tools para hosts externos compatibles sin ejecutar acciones reales.
-
-El borde verde pertenece a la app propia. El MCP expone informacion y
-diagnosticos para clientes externos, pero no necesita abrir una UI local.
+- No hay base de datos persistente.
+- No hay CI/CD ni empaquetado release automatizado.
+- El OCR real depende de una version de Python compatible con PaddlePaddle.
+- El MCPB tiene manifiesto base, pero el paquete `.mcpb` final debe validarse
+  con el CLI oficial `mcpb`.
+- La vision multimodal hacia OpenAI/Anthropic todavia no envia imagen/frame.

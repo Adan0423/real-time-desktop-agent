@@ -1,0 +1,82 @@
+{
+  "manifest_version": "0.4",
+  "name": "real-time-desktop-agent",
+  "display_name": "RTDA - Real-Time Desktop Agent",
+  "version": "0.1.0",
+  "description": "Local Windows desktop capture and automation tools exposed through MCP.",
+  "long_description": "RTDA exposes a local MCP server for Windows desktop capture diagnostics, UI Automation inspection, action planning, risk classification, and dry-run desktop actions. It is designed for private local use with Claude Desktop and other MCP-compatible hosts.",
+  "author": {
+    "name": "Adan0423",
+    "email": "Atrinidad.a4@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Adan0423/real-time-desktop-agent.git"
+  },
+  "homepage": "https://github.com/Adan0423/real-time-desktop-agent",
+  "documentation": "https://github.com/Adan0423/real-time-desktop-agent#readme",
+  "support": "https://github.com/Adan0423/real-time-desktop-agent/issues",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "desktop-automation",
+    "windows",
+    "screen-capture",
+    "computer-vision"
+  ],
+  "server": {
+    "type": "uv",
+    "entry_point": "mcpb_server.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--extra",
+        "capture",
+        "python",
+        "${__dirname}/mcpb_server.py"
+      ],
+      "env": {
+        "RTDA_MCP_TRANSPORT": "stdio"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "health",
+      "description": "Return RTDA server status and implemented phases."
+    },
+    {
+      "name": "capture_monitors",
+      "description": "List monitors visible to the local Windows capture engine."
+    },
+    {
+      "name": "capture_diagnostic",
+      "description": "Run a short local screen-capture diagnostic and return frame metrics."
+    },
+    {
+      "name": "inspect_uia",
+      "description": "Read a bounded Windows UI Automation snapshot."
+    },
+    {
+      "name": "plan_goal",
+      "description": "Build a small deterministic action plan from a user goal."
+    },
+    {
+      "name": "classify_action",
+      "description": "Classify desktop action risk using the RTDA safety policy."
+    },
+    {
+      "name": "dry_run_action",
+      "description": "Resolve and simulate a desktop action without executing it."
+    }
+  ],
+  "compatibility": {
+    "platforms": [
+      "win32"
+    ],
+    "runtimes": {
+      "python": ">=3.12,<3.15"
+    }
+  }
+}
