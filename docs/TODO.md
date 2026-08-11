@@ -12,19 +12,23 @@ Ultima actualizacion: 2026-08-11
    - Estado actual: manifest validado y paquete local generado en `dist/real-time-desktop-agent-0.1.0.mcpb`.
    - Necesario: arrastrar el paquete en Claude Desktop, confirmar instalacion y probar tools.
 
-3. Separar runtime persistente de la app visual.
+3. Probar plugin ChatGPT/Codex.
+   - Estado actual: plugin local y marketplace repo creados.
+   - Necesario: reiniciar ChatGPT Desktop, instalar desde marketplace local y probar tools.
+
+4. Separar runtime persistente de la app visual.
    - Estado actual: `RTDAComplementRuntime` separa la frontera en codigo, pero vive in-process.
    - Necesario: modo servicio/proceso local que la app y los hosts IA puedan consumir.
 
-4. Endurecer permisos para acciones reales.
+5. Endurecer permisos para acciones reales.
    - Estado actual: MCP usa `dry_run_action`.
    - Necesario: confirmacion explicita, allowlist de ventanas y auditoria de acciones.
 
-5. Seleccion visual de region desde la UI.
+6. Seleccion visual de region desde la UI.
    - Estado actual: region por inputs numericos.
    - Necesario: selector interactivo tipo recorte y ajuste desde overlay.
 
-6. Guia de conexion MCP por cliente.
+7. Guia de conexion MCP por cliente.
    - Estado actual: comando stdio documentado.
    - Necesario: ejemplos para Claude Desktop, Claude Code, ChatGPT/Codex y otros hosts MCP.
 

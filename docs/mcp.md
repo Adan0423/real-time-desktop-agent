@@ -36,3 +36,7 @@ la app completa. Devuelve checks, monitores, frame mas reciente y metricas.
 
 Para Claude Desktop, ver [MCPB](MCPB.md). El formato recomendado actual es
 `.mcpb`; `.dxt` queda como compatibilidad heredada.
+
+Para ChatGPT/Codex, ver [CHATGPT_PLUGIN](CHATGPT_PLUGIN.md). OpenAI usa
+Plugins/Apps con `.codex-plugin/plugin.json`; no usa `.mcpb` como formato de
+instalacion local.

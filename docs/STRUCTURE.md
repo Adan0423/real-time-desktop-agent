@@ -27,6 +27,8 @@ rtda.mcp         -> transporte para hosts IA externos
 | `desktop/` | Dashboard PySide6 y control flotante | `src/rtda/complement`, `src/rtda/ai` |
 | `src/rtda/app/` | CLI launchers y shims antiguos | `desktop`, `capture`, `mcp` |
 | `src/rtda/extension/` | Compatibilidad hacia `rtda.complement` | `complement` |
+| `plugins/real-time-desktop-agent/` | Plugin local ChatGPT/Codex | MCP server de `src/rtda` |
+| `.agents/plugins/` | Marketplace local para ChatGPT Desktop/Codex | `plugins/` |
 
 ## API recomendada
 
