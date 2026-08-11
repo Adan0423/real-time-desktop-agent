@@ -52,6 +52,16 @@ class FrameBuffer:
         with self._lock:
             return self._frames[-2] if len(self._frames) >= 2 else None
 
+    def latest_pair(self) -> tuple[Frame | None, Frame | None]:
+        """Return `(previous, latest)` from a single locked snapshot."""
+
+        with self._lock:
+            if not self._frames:
+                return None, None
+            if len(self._frames) == 1:
+                return None, self._frames[-1]
+            return self._frames[-2], self._frames[-1]
+
     def get_region(self, region: Region, *, copy: bool = False) -> Frame | None:
         frame = self.latest()
         if frame is None:

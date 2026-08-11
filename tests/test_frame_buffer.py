@@ -44,3 +44,17 @@ def test_buffer_get_region_uses_latest_frame() -> None:
     assert region is not None
     assert region.sequence == 2
     assert region.data.shape == (2, 2, 4)
+
+
+def test_latest_pair_is_a_consistent_snapshot() -> None:
+    buffer = FrameBuffer(max_size=3)
+
+    assert buffer.latest_pair() == (None, None)
+    buffer.push(make_frame(1))
+    assert buffer.latest_pair()[0] is None
+    buffer.push(make_frame(2))
+
+    previous, latest = buffer.latest_pair()
+
+    assert previous.sequence == 1
+    assert latest.sequence == 2

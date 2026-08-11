@@ -54,6 +54,16 @@ El modulo `rtda.performance.metrics` mide:
 - `src/rtda/capture/frame.py`
 - `src/rtda/capture/frame_buffer.py`
 - `src/rtda/capture/windows_capture.py`
+- `src/rtda/perception/interface.py`
+- `src/rtda/perception/opencv_detector.py`
+- `src/rtda/perception/change_detector.py`
+- `src/rtda/perception/uia.py`
+- `src/rtda/perception/ocr.py`
+- `src/rtda/perception/vision_model.py`
+- `src/rtda/actions/engine.py`
+- `src/rtda/safety/action_guard.py`
+- `src/rtda/agent/executor.py`
+- `src/rtda/mcp/server.py`
 - `src/rtda/performance/metrics.py`
 - `src/rtda/app/dashboard.py`
 - `src/rtda/app/main.py`

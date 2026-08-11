@@ -26,7 +26,7 @@ ScreenCapture
 
 La dependencia nueva propuesta es `windows-capture>=2.0.1` porque expone en Python tanto Windows Graphics Capture como DXGI Desktop Duplication, y su wheel actual soporta CPython 3.9+ en Windows x86-64. Esto evita escribir codigo D3D/WinRT nativo en la primera iteracion y mantiene el diseno listo para reemplazar el backend si luego necesitamos control mas fino.
 
-`windows-capture` trae `opencv-python` como dependencia transitiva. No se agrega ningun detector OpenCV en Fase 1; se acepta temporalmente porque el wrapper resuelve captura WGC/DXGI y conversion de frames desde Python.
+`windows-capture` trae `opencv-python` como dependencia transitiva. En Fase 2 `opencv-python` queda declarado de forma explicita porque el detector de cambios lo usa directamente.
 
 ## Fuentes consultadas
 
