@@ -2,7 +2,7 @@
 
 Proyecto inicial para construir un agente de escritorio en Windows 11 con percepcion rapida, razonamiento lento y metricas desde el primer modulo.
 
-Estado actual: **Fase 8 - MCP/tools** sobre captura, percepcion, acciones seguras y agente.
+Estado actual: **Fase 8 + modos de integracion** sobre captura, percepcion, acciones seguras, agente, app propia y complemento MCP.
 
 ## Fases implementadas
 
@@ -101,15 +101,30 @@ python -m pip install -e ".[capture,gui,dev]"
 
 ## Uso
 
+El proyecto se puede usar de dos maneras:
+
+1. **App propia RTDA**: interfaz local para capturar pantalla, ver preview,
+   marcar el area capturada con borde verde y probar IA con token.
+2. **Complemento para IA externa**: servidor MCP para hosts compatibles
+   como clientes de ChatGPT, Claude u otros agentes que puedan llamar tools.
+
 Ejecutar la interfaz de captura de Fase 1:
 
 ```powershell
 python -m rtda.app.main
 ```
 
-Por defecto esta UI solo activa captura, buffer, preview y metricas de captura.
-Las herramientas de fases posteriores quedan ocultas para mantener aislado el
-Primer Objetivo.
+Por defecto la UI muestra el borde verde del area capturada. Para ocultarlo:
+
+```powershell
+python -m rtda.app.main --hide-overlay
+```
+
+La interfaz tambien incluye un panel IA para pruebas con token. El token se usa
+en memoria y no se escribe en el repositorio.
+
+Por defecto las herramientas de percepcion de fases posteriores quedan ocultas
+para mantener aislado el Primer Objetivo.
 
 Ejecutar la interfaz de debugging con herramientas de percepcion/UIA:
 
@@ -162,7 +177,10 @@ python -m pytest
 ## Documentacion
 
 - [Arquitectura](docs/architecture.md)
+- [Modos de uso](docs/modes.md)
 - [Captura](docs/capture.md)
+- [Overlay verde](docs/overlay.md)
+- [IA con token](docs/ai.md)
 - [Percepcion](docs/perception.md)
 - [UI Automation](docs/uia.md)
 - [OCR](docs/ocr.md)

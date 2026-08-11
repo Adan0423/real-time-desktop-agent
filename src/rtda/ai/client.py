@@ -59,7 +59,7 @@ class AIResponse:
 
 def default_model(provider: AIProvider) -> str:
     if provider == "openai":
-        return "gpt-5"
+        return "gpt-5.6-terra"
     if provider == "anthropic":
         return "claude-sonnet-5"
     raise ValueError("provider must be 'openai' or 'anthropic'")

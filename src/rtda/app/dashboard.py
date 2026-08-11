@@ -175,7 +175,7 @@ class CaptureDashboard:
     def show(self) -> None:
         self.widget.show()
 
-    def _shutdown(self) -> None:
+    def _shutdown(self, *_args) -> None:
         self._overlay.hide()
         self._ai_executor.shutdown(wait=False, cancel_futures=True)
 

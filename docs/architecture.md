@@ -64,6 +64,20 @@ El modulo `rtda.performance.metrics` mide:
 - `src/rtda/safety/action_guard.py`
 - `src/rtda/agent/executor.py`
 - `src/rtda/mcp/server.py`
+- `src/rtda/ai/client.py`
+- `src/rtda/overlay/geometry.py`
+- `src/rtda/overlay/windows.py`
+- `src/rtda/overlay/qt.py`
 - `src/rtda/performance/metrics.py`
 - `src/rtda/app/dashboard.py`
 - `src/rtda/app/main.py`
+
+## Modos de uso
+
+Encima del Capture Engine existen dos superficies:
+
+- app propia: captura, preview, borde verde y panel IA local con token;
+- complemento MCP: tools para hosts externos compatibles sin ejecutar acciones reales.
+
+El borde verde pertenece a la app propia. El MCP expone informacion y
+diagnosticos para clientes externos, pero no necesita abrir una UI local.
