@@ -19,7 +19,7 @@ dependencies = [
   "pyautogui>=0.9.54",
   "uiautomation>=2.0.29",
   "onnxruntime>=1.28",
-  "mcp>=1.27,<3",
+  "mcp>=1.27,<2",
 ]
 
 [project.optional-dependencies]
