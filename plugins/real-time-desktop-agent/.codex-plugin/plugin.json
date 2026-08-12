@@ -1,6 +1,6 @@
 {
   "name": "real-time-desktop-agent",
-  "version": "0.1.0",
+  "version": "3.0.0-beta.1",
   "description": "Realtime Windows desktop complement for AI agents with capture, vision, mouse, keyboard, UIA, and safe dry-run actions.",
   "author": {
     "name": "Adan0423",

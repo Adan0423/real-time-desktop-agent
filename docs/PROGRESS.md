@@ -58,7 +58,7 @@ FASE 8: DesktopSession & MCP    [███████████████�
 | 🤖 **AgentExecutor Multi-Paso** | ✅ Completado | `src/rtda/agent/executor.py` | `tests/unit/test_agent.py` |
 | 🎯 **Benchmark Suite (25 Casos)** | ✅ Completado | `tests/benchmark/` | `tests/benchmark/test_benchmark.py` |
 | 🔌 **MCP Server (7 Tools)** | ✅ Completado | `src/rtda/mcp/server.py` | `tests/unit/test_mcp_server.py` |
-| 📦 **MCPB Bundle (.mcpb)** | ✅ Completado | `dist/real-time-desktop-agent-0.1.0.mcpb` | `tests/unit/test_openai_plugin_metadata.py` |
+| 📦 **MCPB Bundle (.mcpb)** | ✅ Completado | `dist/real-time-desktop-agent-3.0.0-beta.1.mcpb` | `tests/unit/test_openai_plugin_metadata.py` |
 | 💻 **PySide6 Control Surface UI** | ✅ Completado | `desktop/ui/` | `tests/ui/test_desktop_ui_panels.py` |
 
 ---

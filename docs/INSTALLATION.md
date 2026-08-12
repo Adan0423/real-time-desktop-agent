@@ -19,7 +19,7 @@
                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                    DIST ARCHIVE (.mcpb Bundle)                          │
-│          dist/real-time-desktop-agent-0.1.0.mcpb (243 KB)             │
+│          dist/real-time-desktop-agent-3.0.0-beta.1.mcpb (243 KB)             │
 │   Contiene todo el runtime, manifest.json y dependencias empaquetadas   │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -56,7 +56,7 @@ Este es el método **más rápido y recomendado** para usuarios finales de Claud
 #### Pasos:
 1. **Obtener el archivo `.mcpb`**:
    Descarga el paquete distribuible desde:
-   `dist/real-time-desktop-agent-0.1.0.mcpb`
+   `dist/real-time-desktop-agent-3.0.0-beta.1.mcpb`
 
 2. **Instalar en Claude Desktop**:
    - Abre **Claude Desktop**.
