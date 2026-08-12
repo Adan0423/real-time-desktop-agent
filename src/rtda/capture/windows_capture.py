@@ -86,6 +86,7 @@ class WindowsCaptureEngine(ScreenCapture):
         self._native_control = None
         self._native_internal_control = None
         self._native_session = None
+        self.buffer.clear()
 
     def pause(self) -> None:
         self._paused.set()
@@ -251,7 +252,7 @@ class WindowsCaptureEngine(ScreenCapture):
         array = np.asarray(data)
         if not array.flags.c_contiguous:
             array = np.ascontiguousarray(array)
-        else:
+        elif not array.flags.owndata:
             array = array.copy()
         if array.ndim != 3 or array.shape[2] not in (3, 4):
             raise ValueError(f"unsupported frame shape: {array.shape}")

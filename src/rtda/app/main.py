@@ -15,6 +15,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="RTDA complement capture CLI")
     parser.add_argument("--backend", choices=["dxgi", "wgc"], default="dxgi")
     parser.add_argument("--target-fps", type=int, default=60)
+    parser.add_argument("--max-buffer-size", type=int, default=2)
     parser.add_argument("--monitor-index", type=int, default=0)
     parser.add_argument("--window-title", default=None)
     parser.add_argument("--region", nargs=4, type=int, metavar=("LEFT", "TOP", "RIGHT", "BOTTOM"))
@@ -37,6 +38,7 @@ def _config_from_args(args: argparse.Namespace) -> CaptureConfig:
     return CaptureConfig(
         backend=backend,
         target_fps=args.target_fps,
+        max_buffer_size=args.max_buffer_size,
         monitor_index=args.monitor_index,
         region=region,
         window_title=args.window_title,

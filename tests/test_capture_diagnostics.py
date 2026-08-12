@@ -34,6 +34,7 @@ class FakeCapture(ScreenCapture):
 
     def stop(self) -> None:
         self.stopped = True
+        self.frame = None
 
     def pause(self) -> None:
         self.paused = True
@@ -79,7 +80,8 @@ def test_capture_diagnostic_passes_with_fake_capture() -> None:
     assert result.checks["capture_started"] is True
     assert result.checks["pause_resume_called"] is True
     assert result.checks["stopped_cleanly"] is True
-    assert result.latest_frame["width"] == 100
+    assert result.checks["latest_frame_available"] is True
+    assert result.latest_frame is None
 
 
 def test_monitors_to_dict_includes_label_and_dimensions() -> None:

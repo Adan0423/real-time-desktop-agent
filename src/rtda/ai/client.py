@@ -8,8 +8,30 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any, Literal
 
-AIProvider = Literal["openai", "anthropic"]
+AIProvider = Literal["openai", "anthropic", "openrouter", "groq", "tokenrouter", "nvidia"]
 Transport = Callable[[str, Mapping[str, str], Mapping[str, Any], float], Mapping[str, Any]]
+AI_PROVIDERS: tuple[AIProvider, ...] = (
+    "openai",
+    "anthropic",
+    "openrouter",
+    "groq",
+    "tokenrouter",
+    "nvidia",
+)
+AI_PROVIDER_ENV_VARS: dict[AIProvider, str] = {
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "groq": "GROQ_API_KEY",
+    "tokenrouter": "TOKENROUTER_API_KEY",
+    "nvidia": "NVIDIA_API_KEY",
+}
+OPENAI_COMPATIBLE_CHAT_ENDPOINTS: dict[AIProvider, str] = {
+    "openrouter": "https://openrouter.ai/api/v1/chat/completions",
+    "groq": "https://api.groq.com/openai/v1/chat/completions",
+    "tokenrouter": "https://api.tokenrouter.io/v1/chat/completions",
+    "nvidia": "https://integrate.api.nvidia.com/v1/chat/completions",
+}
 
 
 class AIClientError(RuntimeError):
@@ -24,12 +46,17 @@ class AIClientConfig:
     timeout_s: float = 30.0
     max_output_tokens: int = 800
 
+    def __post_init__(self) -> None:
+        normalize_provider(self.provider)
+        if self.timeout_s <= 0:
+            raise ValueError("timeout_s must be positive")
+        if self.max_output_tokens <= 0:
+            raise ValueError("max_output_tokens must be positive")
+
     @classmethod
     def from_env(cls, provider: AIProvider | None = None) -> "AIClientConfig":
-        selected_provider = provider or os.getenv("RTDA_AI_PROVIDER", "openai").strip().lower()
-        if selected_provider not in ("openai", "anthropic"):
-            raise ValueError("RTDA_AI_PROVIDER must be 'openai' or 'anthropic'")
-        api_key = os.getenv("OPENAI_API_KEY") if selected_provider == "openai" else os.getenv("ANTHROPIC_API_KEY")
+        selected_provider = normalize_provider(provider or os.getenv("RTDA_AI_PROVIDER", "openai"))
+        api_key = os.getenv(env_var_for_provider(selected_provider))
         return cls(
             provider=selected_provider,
             api_key=api_key,
@@ -42,7 +69,7 @@ class AIClientConfig:
     def resolved_api_key(self) -> str:
         if self.api_key:
             return self.api_key
-        env_name = "OPENAI_API_KEY" if self.provider == "openai" else "ANTHROPIC_API_KEY"
+        env_name = env_var_for_provider(self.provider)
         env_value = os.getenv(env_name)
         if env_value:
             return env_value
@@ -58,11 +85,20 @@ class AIResponse:
 
 
 def default_model(provider: AIProvider) -> str:
+    provider = normalize_provider(provider)
     if provider == "openai":
         return "gpt-5.6-terra"
     if provider == "anthropic":
         return "claude-sonnet-5"
-    raise ValueError("provider must be 'openai' or 'anthropic'")
+    if provider == "openrouter":
+        return "openrouter/free"
+    if provider == "groq":
+        return "llama-3.3-70b-versatile"
+    if provider == "tokenrouter":
+        return "auto:cost"
+    if provider == "nvidia":
+        return "meta/llama-3.3-70b-instruct"
+    raise ValueError("unsupported provider")
 
 
 class AIClient:
@@ -78,6 +114,8 @@ class AIClient:
             return self._complete_openai(prompt, system=system)
         if self.config.provider == "anthropic":
             return self._complete_anthropic(prompt, system=system)
+        if self.config.provider in OPENAI_COMPATIBLE_CHAT_ENDPOINTS:
+            return self._complete_openai_compatible_chat(prompt, system=system)
         raise AIClientError(f"unsupported provider: {self.config.provider}")
 
     def _complete_openai(self, prompt: str, *, system: str | None) -> AIResponse:
@@ -131,6 +169,57 @@ class AIClient:
             output_text=_extract_anthropic_text(raw),
             raw=raw,
         )
+
+    def _complete_openai_compatible_chat(self, prompt: str, *, system: str | None) -> AIResponse:
+        provider = normalize_provider(self.config.provider)
+        model = self.config.resolved_model()
+        messages: list[dict[str, str]] = []
+        if system:
+            messages.append({"role": "system", "content": system})
+        messages.append({"role": "user", "content": prompt})
+        payload: dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": self.config.max_output_tokens,
+            "stream": False,
+        }
+        raw = self._transport(
+            OPENAI_COMPATIBLE_CHAT_ENDPOINTS[provider],
+            _headers_for_chat_provider(provider, self.config.resolved_api_key()),
+            payload,
+            self.config.timeout_s,
+        )
+        return AIResponse(
+            provider=provider,
+            model=model,
+            output_text=_extract_chat_completion_text(raw),
+            raw=raw,
+        )
+
+
+def normalize_provider(provider: str) -> AIProvider:
+    selected = provider.strip().lower()
+    if selected in AI_PROVIDERS:
+        return selected  # type: ignore[return-value]
+    allowed = ", ".join(AI_PROVIDERS)
+    raise ValueError(f"AI provider must be one of: {allowed}")
+
+
+def env_var_for_provider(provider: AIProvider) -> str:
+    return AI_PROVIDER_ENV_VARS[normalize_provider(provider)]
+
+
+def _headers_for_chat_provider(provider: AIProvider, api_key: str) -> dict[str, str]:
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
+    if provider == "openrouter":
+        headers["HTTP-Referer"] = "https://github.com/Adan0423/real-time-desktop-agent"
+        headers["X-OpenRouter-Title"] = "Real-Time Desktop Agent"
+    if provider == "nvidia":
+        headers["Accept"] = "application/json"
+    return headers
 
 
 def _post_json(

@@ -28,6 +28,20 @@ La dependencia nueva propuesta es `windows-capture>=2.0.1` porque expone en Pyth
 
 `windows-capture` trae `opencv-python` como dependencia transitiva. En Fase 2 `opencv-python` queda declarado de forma explicita porque el detector de cambios lo usa directamente.
 
+## Retencion efimera
+
+RTDA no guarda capturas ni frames en disco. La captura opera con un ring buffer
+en RAM, acotado por `CaptureConfig.max_buffer_size`.
+
+- Valor por defecto: `2`, suficiente para conservar `latest` y `previous`.
+- Valor minimo: `1`, util cuando no se necesita comparar cambios.
+- Limite duro: `4`, para evitar retencion accidental de demasiados frames.
+- `WindowsCaptureEngine.stop()` limpia el buffer para liberar los frames
+  retenidos al terminar la sesion.
+
+El diagnostico puede confirmar que hubo `latest_frame` durante la sesion, pero
+no debe depender de conservar una imagen despues de detener la captura.
+
 ## Fuentes consultadas
 
 - [Microsoft Learn - Windows Graphics Capture](https://learn.microsoft.com/en-us/windows/apps/develop/media-authoring-processing/screen-capture): permite adquirir frames de un display o ventana y recomienda no hacer trabajo pesado en el evento de frame.
@@ -53,7 +67,7 @@ de fases posteriores (`--detect-changes`, `--inspect-uia` o
 - La app puede listar monitores.
 - Puede capturar monitor completo en modo `dxgi`.
 - Puede capturar monitor o ventana por titulo en modo `wgc`.
-- Los frames permanecen en memoria.
+- Los frames permanecen solo en memoria durante la captura y se limpian al detener.
 - La UI muestra preview, resolucion, FPS, latencia y descartes.
 - El CLI puede ejecutar un diagnostico reproducible de captura.
 - Las pruebas unitarias del buffer y metricas pasan.
@@ -71,6 +85,12 @@ Ejecutar diagnostico del Primer Objetivo:
 
 ```powershell
 python -m rtda.app.main --capture-diagnostic --duration 4 --backend dxgi --target-fps 30
+```
+
+Diagnostico con retencion minima absoluta:
+
+```powershell
+python -m rtda.app.main --capture-diagnostic --duration 4 --backend dxgi --target-fps 30 --max-buffer-size 1
 ```
 
 El diagnostico valida:

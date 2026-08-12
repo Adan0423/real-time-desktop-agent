@@ -26,7 +26,11 @@ Opciones:
 python -m desktop.main --hide-overlay
 python -m desktop.main --hide-floating
 python -m desktop.main --enable-perception-tools
+python -m desktop.main --max-buffer-size 1
 ```
 
 El desktop consume `rtda.complement.RTDAComplementRuntime`; no debe contener
 logica core de captura, acciones, vision ni MCP.
+
+La app no guarda frames en disco. El buffer de captura es efimero, vive solo en
+RAM y se limpia al detener; por defecto conserva `2` frames como maximo.

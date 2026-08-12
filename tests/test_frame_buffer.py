@@ -4,6 +4,7 @@ import numpy as np
 
 from rtda.capture.frame import Frame
 from rtda.capture.frame_buffer import FrameBuffer
+from rtda.capture.interface import MAX_CAPTURE_BUFFER_SIZE, CaptureConfig
 from rtda.capture.region import Region
 
 
@@ -58,3 +59,20 @@ def test_latest_pair_is_a_consistent_snapshot() -> None:
 
     assert previous.sequence == 1
     assert latest.sequence == 2
+
+
+def test_capture_config_defaults_to_minimal_live_buffer() -> None:
+    config = CaptureConfig()
+
+    assert config.max_buffer_size == 2
+
+
+def test_capture_config_rejects_unbounded_frame_retention() -> None:
+    too_many_frames = MAX_CAPTURE_BUFFER_SIZE + 1
+
+    try:
+        CaptureConfig(max_buffer_size=too_many_frames)
+    except ValueError as exc:
+        assert "max_buffer_size" in str(exc)
+    else:
+        raise AssertionError("expected max_buffer_size validation to reject unbounded retention")

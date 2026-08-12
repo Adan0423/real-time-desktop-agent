@@ -7,7 +7,7 @@
 ![Windows](https://img.shields.io/badge/platform-Windows%2011-0078D4?logo=windows&logoColor=white)
 ![MCP](https://img.shields.io/badge/MCP-compatible-6f42c1)
 
-**Real-Time Desktop Agent (RTDA)** es un complemento local para asistentes de IA que necesitan observar y razonar sobre el escritorio en Windows 11. Su nucleo captura pantalla o ventanas, mantiene frames en memoria, mide rendimiento y expone esas capacidades por una frontera reutilizable.
+**Real-Time Desktop Agent (RTDA)** es un complemento local para asistentes de IA que necesitan observar y razonar sobre el escritorio en Windows 11. Su nucleo captura pantalla o ventanas, mantiene solo frames efimeros en memoria, mide rendimiento y expone esas capacidades por una frontera reutilizable.
 
 El proyecto se usa de dos maneras:
 
@@ -51,7 +51,7 @@ flowchart LR
 ## Caracteristicas Principales
 
 - Captura monitor, region o ventana especifica en Windows 11.
-- Mantiene un frame buffer en memoria para consumo en tiempo real.
+- Mantiene un frame buffer efimero, acotado y solo en memoria para consumo en tiempo real.
 - Mide FPS, resolucion, latencia, frames descartados y errores.
 - Expone mouse, teclado, vision y border desde una API de complemento.
 - Muestra preview local con una interfaz de escritorio redisenada.
@@ -108,6 +108,10 @@ python -m rtda.app.main --list-monitors
 python -m rtda.app.main --capture-diagnostic --duration 4 --backend dxgi --target-fps 30
 ```
 
+Para minimizar RAM, RTDA usa `--max-buffer-size 2` por defecto: conserva
+solamente el frame actual y el anterior. Usa `--max-buffer-size 1` si no
+necesitas deteccion de cambios.
+
 8. Ejecuta el servidor MCP por stdio.
 
 ```powershell
@@ -145,6 +149,16 @@ RTDA no carga `.env` automaticamente. Usa estas variables si integras los client
 | `RTDA_BACKEND` | Default documentado para captura (`dxgi`/`wgc`); usa `--backend` en CLI | Opcional |
 | `RTDA_TARGET_FPS` | Default documentado de FPS; usa `--target-fps` en CLI | Opcional |
 | `RTDA_MONITOR_INDEX` | Default documentado de monitor; usa `--monitor-index` en CLI | Opcional |
+
+## Retencion de Datos
+
+RTDA esta disenado para operar local-first y en tiempo real:
+
+- No guarda capturas, screenshots ni frames en disco.
+- El buffer de captura vive solo en RAM, usa `max_buffer_size=2` por defecto y tiene limite duro de `4`.
+- `stop()` limpia el buffer para liberar los frames retenidos.
+- Las metricas conservan solo contadores, latencia, resolucion y estado; no conservan imagenes.
+- El cliente OpenAI envia `store=false` cuando se usa el panel IA.
 
 ## Estructura de Carpetas
 

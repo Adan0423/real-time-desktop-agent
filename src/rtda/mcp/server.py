@@ -58,6 +58,7 @@ def capture_diagnostic(
     duration_s: float = 2.0,
     backend: str = "dxgi",
     target_fps: int = 30,
+    max_buffer_size: int = 2,
     monitor_index: int = 0,
     window_title: str | None = None,
     region_left: int | None = None,
@@ -77,6 +78,7 @@ def capture_diagnostic(
     config = CaptureConfig(
         backend=selected_backend,
         target_fps=target_fps,
+        max_buffer_size=max_buffer_size,
         monitor_index=monitor_index,
         region=region,
         window_title=window_title,

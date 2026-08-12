@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import numpy as np
 import pytest
 
 
@@ -46,6 +47,27 @@ def test_ai_panel_syncs_provider_model() -> None:
     panel.sync_model("anthropic")
 
     assert panel.model.text().startswith("claude")
+
+    panel.widget.deleteLater()
+    app.processEvents()
+
+
+def test_preview_panel_accepts_four_channel_frames() -> None:
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    widgets = pytest.importorskip("PySide6.QtWidgets")
+
+    from desktop.ui.preview import PreviewPanel
+    from rtda.capture.frame import Frame
+
+    app = widgets.QApplication.instance() or widgets.QApplication([])
+    panel = PreviewPanel()
+    data = np.zeros((2, 3, 4), dtype=np.uint8)
+    data[..., 3] = 255
+    frame = Frame(timestamp=0.0, width=3, height=2, data=data)
+
+    panel.set_frame(frame)
+
+    assert panel.surface.pixmap() is not None
 
     panel.widget.deleteLater()
     app.processEvents()

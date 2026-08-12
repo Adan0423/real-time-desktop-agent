@@ -28,7 +28,15 @@
 
 ## Regla de diseno
 
-La captura favorece `latest_frame` sobre procesar todos los frames. Si el consumidor se retrasa, el buffer descarta los frames antiguos y conserva el estado visual mas reciente.
+La captura favorece `latest_frame` sobre procesar todos los frames. Si el consumidor se retrasa, el buffer descarta los frames antiguos y conserva solo el estado visual mas reciente.
+
+El buffer de captura es efimero:
+
+- no escribe imagenes a disco;
+- usa `max_buffer_size=2` por defecto para `latest` + `previous`;
+- acepta `max_buffer_size=1` cuando no se necesita deteccion de cambios;
+- rechaza valores mayores que `4`;
+- se limpia en `stop()` para liberar RAM.
 
 ## Medicion inicial
 
@@ -36,6 +44,12 @@ Para medir sin UI:
 
 ```powershell
 python -m rtda.app.main --headless --duration 5 --backend dxgi --target-fps 60
+```
+
+Para medir con retencion minima:
+
+```powershell
+python -m rtda.app.main --headless --duration 5 --backend dxgi --target-fps 60 --max-buffer-size 1
 ```
 
 El resultado esperado es una linea JSON con el snapshot de metricas.

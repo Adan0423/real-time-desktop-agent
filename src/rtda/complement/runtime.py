@@ -142,6 +142,7 @@ class RTDAComplementRuntime:
 
     def stop_capture(self) -> None:
         self._capture.stop()
+        self.buffer.clear()
         self.hide_border()
         self._running = False
         self._paused = False

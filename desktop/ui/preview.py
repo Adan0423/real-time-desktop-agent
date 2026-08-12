@@ -57,10 +57,7 @@ class PreviewPanel:
         from PySide6.QtGui import QImage, QPainter, QPen, QPixmap
 
         data = frame.data
-        if data.shape[2] == 4:
-            image_format = QImage.Format.Format_BGRA8888
-        else:
-            image_format = QImage.Format.Format_RGB888
+        image_format = _qimage_format_for_channels(data.shape[2], QImage)
         image = QImage(data.data, frame.width, frame.height, data.strides[0], image_format).copy()
         pixmap = QPixmap.fromImage(image)
         if change_result is not None:
@@ -86,3 +83,12 @@ def _draw_change_regions(pixmap, result: Any, painter_cls, pen_cls, qt):
         painter.drawRect(bbox.left, bbox.top, bbox.width, bbox.height)
     painter.end()
     return overlay
+
+
+def _qimage_format_for_channels(channel_count: int, qimage_cls):
+    if channel_count == 4:
+        bgra_format = getattr(qimage_cls.Format, "Format_BGRA8888", None)
+        if bgra_format is not None:
+            return bgra_format
+        return qimage_cls.Format.Format_ARGB32
+    return qimage_cls.Format.Format_RGB888

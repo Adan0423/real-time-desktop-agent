@@ -8,6 +8,7 @@ from rtda.capture.frame import Frame
 from rtda.capture.region import Region
 
 CaptureBackend = Literal["wgc", "dxgi"]
+MAX_CAPTURE_BUFFER_SIZE = 4
 
 
 @dataclass(frozen=True, slots=True)
@@ -38,7 +39,7 @@ class MonitorInfo:
 @dataclass(frozen=True, slots=True)
 class CaptureConfig:
     target_fps: int = 60
-    max_buffer_size: int = 8
+    max_buffer_size: int = 2
     monitor_index: int = 0
     region: Region | None = None
     backend: CaptureBackend = "dxgi"
@@ -51,6 +52,8 @@ class CaptureConfig:
             raise ValueError("target_fps must be positive")
         if self.max_buffer_size <= 0:
             raise ValueError("max_buffer_size must be positive")
+        if self.max_buffer_size > MAX_CAPTURE_BUFFER_SIZE:
+            raise ValueError(f"max_buffer_size must be <= {MAX_CAPTURE_BUFFER_SIZE}")
         if self.monitor_index < 0:
             raise ValueError("monitor_index must be non-negative")
         if self.backend not in ("wgc", "dxgi"):

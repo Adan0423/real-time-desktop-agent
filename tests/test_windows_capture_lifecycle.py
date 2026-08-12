@@ -4,6 +4,9 @@ import sys
 from types import SimpleNamespace
 from typing import Any
 
+import numpy as np
+
+from rtda.capture.frame import Frame
 from rtda.capture.interface import CaptureConfig
 from rtda.capture.windows_capture import WindowsCaptureEngine
 
@@ -67,3 +70,21 @@ def test_wgc_stop_waits_on_free_threaded_control(monkeypatch) -> None:
     assert FakeWindowsCapture.control.stopped is True
     assert FakeWindowsCapture.control.waited is True
     assert FakeWindowsCapture.internal_control.stopped is True
+
+
+def test_stop_clears_retained_frames() -> None:
+    capture = WindowsCaptureEngine(CaptureConfig())
+    capture.buffer.push(
+        Frame(
+            timestamp=1.0,
+            width=2,
+            height=2,
+            data=np.zeros((2, 2, 4), dtype=np.uint8),
+            sequence=1,
+        )
+    )
+
+    capture.stop()
+
+    assert capture.latest_frame() is None
+    assert len(capture.buffer) == 0
