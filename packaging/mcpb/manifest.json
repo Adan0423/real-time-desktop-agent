@@ -69,6 +69,30 @@
     {
       "name": "dry_run_action",
       "description": "Resolve and simulate a desktop action without executing it."
+    },
+    {
+      "name": "session_status",
+      "description": "Return current persistent DesktopSession status and telemetry metrics."
+    },
+    {
+      "name": "get_focused_window",
+      "description": "Retrieve current active window title and executable path."
+    },
+    {
+      "name": "observe_state",
+      "description": "Capture full multi-modal UI perception snapshot (UIA + ROI diff + Active Window)."
+    },
+    {
+      "name": "desktop_find",
+      "description": "Search for matching UI elements by query string across current screen tree."
+    },
+    {
+      "name": "run_task",
+      "description": "Execute an autonomous multi-step goal through DesktopSession loop with verification and recovery."
+    },
+    {
+      "name": "execute_action",
+      "description": "Execute a single desktop action with optional dry-run mode."
     }
   ],
   "compatibility": {
