@@ -291,3 +291,35 @@ def _extract_anthropic_text(raw: Mapping[str, Any]) -> str:
     if text:
         return text
     raise AIClientError("Anthropic response did not include text output")
+
+
+def _extract_chat_completion_text(raw: Mapping[str, Any]) -> str:
+    choices = raw.get("choices")
+    if isinstance(choices, list):
+        for choice in choices:
+            if not isinstance(choice, Mapping):
+                continue
+            message = choice.get("message")
+            if isinstance(message, Mapping):
+                text = _coerce_text_content(message.get("content"))
+                if text:
+                    return text
+            text = _coerce_text_content(choice.get("text"))
+            if text:
+                return text
+    raise AIClientError("Chat completion response did not include text output")
+
+
+def _coerce_text_content(content: Any) -> str:
+    if isinstance(content, str):
+        return content.strip()
+    parts: list[str] = []
+    if isinstance(content, list):
+        for block in content:
+            if isinstance(block, str):
+                parts.append(block)
+            elif isinstance(block, Mapping):
+                text = block.get("text")
+                if isinstance(text, str):
+                    parts.append(text)
+    return "\n".join(part.strip() for part in parts if part.strip())
