@@ -61,7 +61,19 @@ flowchart LR
 - Permite pruebas con proveedores IA usando token en la app: OpenAI, Anthropic, OpenRouter, Groq, TokenRouter y NVIDIA.
 - Mantiene acciones externas en modo seguro/dry-run mientras se endurece MVP.
 
-## Instalacion y Uso
+## 🚀 Guía de Instalación y Distribución
+
+> Consulta la [**Guía Completa de Instalación y Distribución (docs/INSTALLATION.md)**](docs/INSTALLATION.md) para ver los 3 métodos detallados de instalación con iconos e instrucciones paso a paso.
+
+| Método | Destino | Tipo de Instalación | Instrucciones |
+|---|---|---|---|
+| 🟣 **Método A** | **Claude Desktop** | **1-Click MCP Bundle (`.mcpb`)** | Arrastrar `dist/real-time-desktop-agent-0.1.0.mcpb` a Claude Desktop |
+| 🔵 **Método B** | **Cursor / VSCode / Dev** | **`pip` / `uv` local install** | `uv pip install -e .` + `claude_desktop_config.json` |
+| 🔴 **Método C** | **ChatGPT / API / WebSocket** | **Servidor SSE en Red** | `python -m rtda.mcp.server --transport sse` |
+
+---
+
+## Instalación Básica de Desarrollo
 
 1. Clona el repositorio.
 

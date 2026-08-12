@@ -36,6 +36,10 @@ ocr = [
   "paddleocr>=3.0",
   "paddlepaddle>=3.0",
 ]
+service = [
+  "fastapi>=0.110",
+  "uvicorn>=0.28",
+]
 
 [project.scripts]
 rtda-capture = "rtda.app.main:main"
