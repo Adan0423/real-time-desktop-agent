@@ -61,7 +61,7 @@ Este es el método **más rápido y recomendado** para usuarios finales de Claud
 2. **Instalar en Claude Desktop**:
    - Abre **Claude Desktop**.
    - Ve a **Settings** ⚙️ ➔ **Developer** ➔ **Add Extension**.
-   - Selecciona el archivo `real-time-desktop-agent-0.1.0.mcpb` (o simplemente arrástralo sobre la ventana de Claude Desktop).
+   - Selecciona el archivo `real-time-desktop-agent-3.0.0-beta.1.mcpb` (o simplemente arrástralo sobre la ventana de Claude Desktop).
 
 3. **¡Listo!**:
    Claude Desktop instalará automáticamente las herramientas y podrás pedirle a Claude que interactúe con tu escritorio de Windows.
@@ -70,20 +70,26 @@ Este es el método **más rápido y recomendado** para usuarios finales de Claud
 
 ### 🔵 Método B: Desarrolladores / Cursor / VSCode / Windsurf (`pip` / `uv`)
 
-Ideal para desarrolladores que desean modificar el código fuente o conectar clientes localmente via `stdio`.
+Ideal para desarrolladores que desean instalar el paquete ejecutable directamente desde GitHub Releases o clonar el código fuente.
 
-#### Pasos:
-1. **Clonar el repositorio e instalar**:
-   ```powershell
-   git clone https://github.com/Adan0423/real-time-desktop-agent.git
-   cd real-time-desktop-agent
+#### Opción 1: Instalación directa desde GitHub Releases (Sin clonar)
+Cualquier desarrollador puede instalar el paquete `.whl` directamente desde el Release de GitHub:
 
-   # Usando uv (Recomendado):
-   uv pip install -e .
+```bash
+pip install https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.0-beta.1/real_time_desktop_agent-3.0.0b1-py3-none-any.whl
+```
 
-   # O usando pip tradicional:
-   pip install -e .
-   ```
+#### Opción 2: Instalación desde código fuente
+```powershell
+git clone https://github.com/Adan0423/real-time-desktop-agent.git
+cd real-time-desktop-agent
+
+# Usando uv (Recomendado):
+uv pip install -e .
+
+# O usando pip tradicional:
+pip install -e .
+```
 
 2. **Configurar el cliente MCP (`claude_desktop_config.json` o configuración de Cursor/VSCode)**:
    Añade el servidor MCP a la configuración de tu cliente:

@@ -87,8 +87,8 @@
 
 | Método | Cliente Destino | Tipo de Instalación | Instrucciones Rápidas |
 |---|---|---|---|
-| 🟣 **Método A** | **Claude Desktop** | **1-Click MCP Bundle (`.mcpb`)** | Descargar [`v3.0.0-beta.1 Release`](https://github.com/Adan0423/real-time-desktop-agent/releases/tag/v3.0.0-beta.1) e instalar el archivo `.mcpb` en Claude Desktop. |
-| 🔵 **Método B** | **Cursor / VSCode / Dev** | **`pip` / `uv` local install** | `uv pip install -e ".[dev,capture,gui,service]"` + configurar `claude_desktop_config.json` |
+| 🟣 **Método A** | **Claude Desktop** | **1-Click MCP Bundle (`.mcpb`)** | Descargar [`v3.0.0-beta.1 Release`](https://github.com/Adan0423/real-time-desktop-agent/releases/tag/v3.0.0-beta.1) e instalar `.mcpb` en Claude. |
+| 🔵 **Método B** | **Cursor / VSCode / Dev** | **`pip` Direct Wheel Install** | `pip install https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.0-beta.1/real_time_desktop_agent-3.0.0b1-py3-none-any.whl` |
 | 🔴 **Método C** | **ChatGPT / API / WebSocket** | **Servidor SSE / WebSocket** | `python -m rtda.mcp.server --transport sse` |
 
 ---
