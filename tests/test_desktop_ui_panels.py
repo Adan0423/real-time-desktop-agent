@@ -13,10 +13,7 @@ def test_target_panel_returns_compact_capture_selection() -> None:
     from rtda.capture.interface import CaptureConfig
 
     app = widgets.QApplication.instance() or widgets.QApplication([])
-    panel = TargetPanel(
-        config=CaptureConfig(target_fps=75),
-        enable_perception_tools=True,
-    )
+    panel = TargetPanel(config=CaptureConfig(target_fps=75))
     panel.set_monitors([])
     panel.region_enabled.setChecked(True)
     panel.left_spin.setValue(10)

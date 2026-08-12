@@ -23,11 +23,7 @@ class ControlSidebar:
         from PySide6.QtWidgets import QFrame, QHBoxLayout, QPushButton, QStackedWidget, QVBoxLayout
 
         self.status = StatusPill("Extension local lista")
-        self.target = TargetPanel(
-            config=config,
-            enable_perception_tools=enable_perception_tools,
-            show_capture_overlay=show_capture_overlay,
-        )
+        self.target = TargetPanel(config=config)
         self.runtime = RuntimePanel(enable_perception_tools=enable_perception_tools)
         self.ai = AiPanel()
         self.settings = SettingsPanel(
