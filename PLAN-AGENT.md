@@ -1,1038 +1,366 @@
-# PROMPT MAESTRO — REAL-TIME DESKTOP AGENT
+# REAL-TIME DESKTOP AGENT — Plan Maestro v2
 
-Quiero desarrollar un proyecto de software llamado:
-
-**REAL-TIME DESKTOP AGENT**
-
-El objetivo es construir un agente de escritorio para **Windows 11** capaz de observar continuamente la pantalla, comprender el estado visual de las aplicaciones y ejecutar acciones mediante el mouse y teclado del sistema.
-
-El proyecto debe estar diseñado como un **Computer Use / Desktop Vision Agent de tiempo real**, no como un simple bot basado en screenshots.
+> **Versión**: 2.0 | **Fecha**: 2026-08-12 | **Estado actual**: Fase 7 en progreso
 
 ---
 
-## 1. OBJETIVO PRINCIPAL
+## Objetivo
 
-Construir un sistema con esta arquitectura conceptual:
+Construir un agente de escritorio para **Windows 11** capaz de:
 
-```text
-                    REAL-TIME DESKTOP AGENT
-                              │
-             ┌────────────────┴────────────────┐
-             ▼                                 ▼
-      REAL-TIME SCREEN                    WINDOWS UIA
-          CAPTURE                    Windows UI Automation
-             │                                 │
-             ▼                                 ▼
-        FRAME BUFFER                     UI ELEMENTS
-             │                                 │
-             └──────────────┬──────────────────┘
-                            ▼
-                    PERCEPTION ENGINE
-                 ┌──────────┼──────────┐
-                 ▼          ▼          ▼
-               OCR        OpenCV     Vision AI
-                 │          │          │
-                 └──────────┼──────────┘
-                            ▼
-                         UI STATE
-                            │
-                            ▼
-                       AI AGENT
-                            │
-                       ACTION PLAN
-                            │
-                 ┌──────────┴──────────┐
-                 ▼                     ▼
-              MOUSE                 KEYBOARD
-                 │                     │
-                 └──────────┬──────────┘
-                            ▼
-                         WINDOWS
-```
+1. Observar continuamente la pantalla y el árbol de UI
+2. Comprender el estado visual de cualquier aplicación
+3. Planificar acciones de múltiples pasos
+4. Ejecutar acciones con mouse y teclado
+5. Verificar que cada acción tuvo el efecto esperado
+6. Recuperarse automáticamente si algo falla
+7. Mantener contexto entre pasos sin perder el hilo
 
-El principio fundamental debe ser:
-
-**FAST PERCEPTION + SLOW REASONING**
-
-La pantalla debe poder capturarse continuamente y mantenerse en memoria, mientras que la IA solamente debe intervenir cuando sea necesario para interpretar o razonar.
-
-NO quiero una arquitectura basada en:
-
-```text
-screenshot
-→ enviar screenshot a IA
-→ esperar
-→ hacer click
-→ screenshot
-→ enviar screenshot a IA
-→ esperar
-```
-
-Quiero:
+**Principio fundamental:** `FAST PERCEPTION + SLOW REASONING`
 
 ```text
 REAL-TIME SCREEN STREAM
         ↓
-FRAME BUFFER
+FRAME BUFFER (memoria, no disco)
         ↓
-CHANGE DETECTION
+CHANGE DETECTION (OpenCV)
         ↓
-UIA / OCR / OPENCV
+PERCEPTION PIPELINE (UIA → OCR → OpenCV → Vision AI)
         ↓
-UI STATE
+UI STATE (representación estructurada)
         ↓
-IA SOLO CUANDO SEA NECESARIO
+AGENT LOOP: OBSERVE → PLAN → ACT → VERIFY → RECOVER
         ↓
-ACTION
+ACCIÓN (mouse, teclado)
         ↓
-VERIFY
+VERIFICACIÓN VISUAL REAL
         ↓
-CONTINUAR
+CONTINUAR O RECUPERAR
 ```
 
 ---
 
-# 2. REFERENCIAS QUE DEBES ESTUDIAR
-
-Antes de escribir código importante, estudia las siguientes tecnologías y proyectos:
-
-### Microsoft UFO²
-
-Repositorio:
-
-https://github.com/microsoft/UFO
-
-Estudia especialmente:
-
-- arquitectura UFO²
-- HostAgent
-- AppAgent
-- Windows UI Automation
-- detección híbrida
-- acción híbrida
-- máquinas de estados
-- percepción
-- planificación
-- ejecución
-- verificación
-- MCP
-
-No copies ciegamente su arquitectura.
-
-Extrae las ideas útiles y diseña una arquitectura propia, modular y mantenible.
-
-### Windows Graphics Capture
-
-Documentación oficial:
-
-https://learn.microsoft.com/en-us/windows/apps/develop/media-authoring-processing/screen-capture
-
-Estudia cómo:
-
-- capturar una ventana
-- capturar un monitor
-- recibir frames continuamente
-- mantener baja latencia
-- evitar conversiones innecesarias
-- utilizar GPU cuando sea posible
-- gestionar pérdida de frames
-- controlar FPS
-- liberar recursos correctamente
-
-### Windows UI Automation
-
-Documentación:
-
-https://learn.microsoft.com/en-us/windows/win32/winauto/ui-automation-specification
-
-Estudia:
-
-- AutomationElement
-- ControlType
-- Name
-- BoundingRectangle
-- IsEnabled
-- patterns
-- árbol de elementos
-- eventos UIA
-- búsqueda de elementos
-- interacción con controles
-
-### OpenCV
-
-https://docs.opencv.org/
-
-Estudia:
-
-- image processing
-- template matching
-- image comparison
-- motion/change detection
-- contours
-- bounding boxes
-- preprocessing para OCR
-
-### PaddleOCR
-
-https://github.com/PaddlePaddle/PaddleOCR
-
-Estudia:
-
-- OCR local
-- detección de texto
-- bounding boxes
-- reconocimiento
-- rendimiento
-- procesamiento por regiones
-
-### ONNX Runtime
-
-https://onnxruntime.ai/
-
-Estudia cómo ejecutar modelos localmente utilizando CPU/GPU.
-
-### OpenAdapt Desktop
-
-https://github.com/OpenAdaptAI/openadapt-desktop
-
-Estudia:
-
-- captura
-- grabación
-- reproducción
-- evidencia
-- recuperación
-- verificación
-
-### PyAutoGUI
-
-https://pyautogui.readthedocs.io/
-
-Utilízalo inicialmente para prototipos de mouse y teclado, pero deja una interfaz abstracta para posteriormente poder sustituirlo por APIs nativas de Windows.
-
----
-
-# 3. STACK INICIAL
-
-Utiliza inicialmente:
-
-- Windows 11
-- Python 3.12+
-- PySide6 para una interfaz gráfica de debugging/monitorización
-- NumPy
-- OpenCV
-- PaddleOCR
-- ONNX Runtime
-- Pydantic
-- pytest
-- logging estructurado
-- PyAutoGUI para el primer prototipo de input
-- Windows Graphics Capture para captura de pantalla
-- Windows UI Automation para percepción estructurada
-
-No introduzcas dependencias innecesarias.
-
-Antes de instalar una librería, explica por qué es necesaria.
-
----
-
-# 4. ARQUITECTURA DEL PROYECTO
-
-Crea una arquitectura modular:
+## Arquitectura general
 
 ```text
-real-time-desktop-agent/
-
-├── README.md
-├── pyproject.toml
-├── .env.example
-├── .gitignore
-│
-├── docs/
-│   ├── architecture.md
-│   ├── capture.md
-│   ├── perception.md
-│   ├── uia.md
-│   ├── vision.md
-│   ├── agent.md
-│   ├── actions.md
-│   ├── safety.md
-│   └── performance.md
-│
-├── src/
-│   │
-│   ├── capture/
-│   │   ├── interface.py
-│   │   ├── windows_capture.py
-│   │   ├── frame.py
-│   │   ├── frame_buffer.py
-│   │   └── region.py
-│   │
-│   ├── perception/
-│   │   ├── interface.py
-│   │   ├── change_detector.py
-│   │   ├── opencv_detector.py
-│   │   ├── ocr.py
-│   │   ├── uia.py
-│   │   └── vision_model.py
-│   │
-│   ├── state/
-│   │   ├── ui_state.py
-│   │   ├── state_store.py
-│   │   └── state_machine.py
-│   │
-│   ├── agent/
-│   │   ├── planner.py
-│   │   ├── reasoning.py
-│   │   ├── executor.py
-│   │   └── verifier.py
-│   │
-│   ├── actions/
-│   │   ├── interface.py
-│   │   ├── mouse.py
-│   │   ├── keyboard.py
-│   │   ├── scroll.py
-│   │   └── navigation.py
-│   │
-│   ├── safety/
-│   │   ├── policy.py
-│   │   ├── confirmation.py
-│   │   └── action_guard.py
-│   │
-│   ├── models/
-│   │   ├── perception.py
-│   │   ├── actions.py
-│   │   └── state.py
-│   │
-│   ├── mcp/
-│   │   └── server.py
-│   │
-│   └── app/
-│       ├── main.py
-│       └── dashboard.py
-│
-├── tests/
-│
-└── examples/
+                  REAL-TIME DESKTOP AGENT
+                            │
+         ┌──────────────────┴──────────────────┐
+         ▼                                     ▼
+  CAPTURE ENGINE                         WINDOWS UIA
+  (DXGI / WGC)                    (UI Automation Inspector)
+         │                                     │
+         ▼                                     ▼
+   FRAME BUFFER                         UIASnapshot
+         │                                     │
+         └──────────────┬──────────────────────┘
+                        ▼
+               PERCEPTION ENGINE
+            ┌──────────┼──────────┐
+            ▼          ▼          ▼
+          OCR        OpenCV    Vision AI
+            │          │          │
+            └──────────┼──────────┘
+                       ▼
+                    UI STATE
+                       │
+                  AGENT OBSERVER
+                       │
+               ┌───────┴───────┐
+               ▼               ▼
+           PLANNER          VERIFIER
+               │               │
+               ▼               ▼
+          ACTION PLAN     VERIFICATION
+               │               │
+          ACTION ENGINE         │
+               │               │
+         ┌─────┴─────┐         │
+         ▼           ▼         │
+       MOUSE      KEYBOARD      │
+         │           │         │
+         └─────┬─────┘         │
+               ▼               │
+           RESULTADO ──────────┘
+               │
+           RECOVERY (si falla)
 ```
 
 ---
 
-# 5. PRINCIPIO FUNDAMENTAL DE CAPTURA
+## Stack tecnológico
 
-La captura debe funcionar como un **stream continuo**.
-
-No guardes cada frame como PNG/JPEG.
-
-No escribas frames al disco salvo para debugging.
-
-Los frames deben permanecer en memoria.
-
-Crear:
-
-```python
-class Frame:
-    timestamp: float
-    width: int
-    height: int
-    data: ...
-```
-
-y:
-
-```python
-class FrameBuffer:
-    def push(frame):
-        ...
-
-    def latest():
-        ...
-
-    def previous():
-        ...
-
-    def get_region(...):
-        ...
-```
-
-El buffer debe poder configurarse:
-
-```text
-target_fps
-max_buffer_size
-region
-monitor
-window
-```
-
-El sistema debe descartar frames antiguos cuando sea necesario.
-
-Para un agente interactivo, normalmente importa más:
-
-**LATEST FRAME**
-
-que procesar todos los frames.
+| Área | Tecnología | Propósito |
+|---|---|---|
+| Captura | `windows-capture` (DXGI/WGC) | Stream de frames de baja latencia |
+| UI Automation | `uiautomation` | Árbol de elementos de Windows |
+| Computer Vision | `opencv-python`, `numpy` | Detección de cambios, template matching |
+| OCR | `paddleocr` (opcional) | Lectura de texto en pantalla |
+| Vision AI | ONNX Runtime | Modelos locales de visión |
+| Acciones | `pyautogui` | Mouse y teclado (reemplazable) |
+| IA / Agentes | MCP + FastMCP | Interfaz con Claude Desktop |
+| Datos | `pydantic` | Modelos tipados y validados |
+| UI App | `PySide6` | Dashboard de escritorio |
+| Tests | `pytest` | Suite de pruebas automatizadas |
 
 ---
 
-# 6. PERFORMANCE
+## Fases de desarrollo
 
-Implementa métricas desde el principio:
+### ✅ FASE 1 — Capture Engine
 
-```text
-capture_fps
-capture_latency_ms
-processing_fps
-ocr_latency_ms
-opencv_latency_ms
-uia_latency_ms
-vision_ai_latency_ms
-action_latency_ms
-end_to_end_latency_ms
-dropped_frames
-cpu_usage
-gpu_usage
-memory_usage
-```
-
-Crear un módulo:
+**Objetivo:** Captura estable y de baja latencia.
 
 ```text
-performance/
+Monitor / Ventana
+      ↓
+DXGI / WGC Backend
+      ↓
+Frame Buffer (en memoria, max 4 frames)
+      ↓
+FPS + Latencia medidos
 ```
 
-que permita medir estas métricas.
-
-La aplicación debe mostrar:
-
-```text
-Capture FPS: 60
-Processing FPS: 15
-Dropped Frames: 2
-Capture Latency: 4 ms
-Vision Latency: 83 ms
-AI Calls: 1
-```
-
-No asumir que el sistema es rápido.
-
-MEDIR.
+**Estado:** IMPLEMENTADO · TESTEADO · MEDIDO
+- DXGI: ~5ms latencia, 60 FPS estables
+- WGC: captura ventanas específicas
+- Buffer configurable: `target_fps`, `max_buffer_size`, `region`, `monitor_index`
 
 ---
 
-# 7. PERCEPTION PIPELINE
+### ✅ FASE 2 — Change Detection
 
-Crear una pipeline:
-
-```text
-FRAME
- ↓
-CHANGE DETECTOR
- ↓
-UIA
- ↓
-OCR
- ↓
-OpenCV
- ↓
-¿suficiente información?
-       │
-    ┌──┴──┐
-   YES    NO
-    │      │
-    │      ▼
-    │   VISION AI
-    │      │
-    └──┬───┘
-       ▼
-   UI STATE
-```
-
-Cada detector debe devolver información estructurada.
-
-Ejemplo:
-
-```json
-{
-  "type": "button",
-  "text": "Guardar",
-  "bbox": [720, 480, 810, 520],
-  "confidence": 0.97,
-  "source": "uia"
-}
-```
-
-Otro ejemplo:
-
-```json
-{
-  "type": "text",
-  "text": "18392",
-  "bbox": [400, 280, 470, 305],
-  "confidence": 0.94,
-  "source": "ocr"
-}
-```
-
----
-
-# 8. FUSIÓN DE PERCEPCIÓN
-
-Nunca depender exclusivamente de una fuente.
-
-Crear un sistema de:
+**Objetivo:** Detectar cuándo la UI cambia para no procesar frames idénticos.
 
 ```text
-UIA
-OCR
-OpenCV
-Vision AI
-```
-
-y fusionar los resultados.
-
-Prioridad inicial:
-
-```text
-UIA
-↓
-OCR
-↓
-OpenCV
-↓
-Vision AI
-```
-
-Pero permitir que la IA resuelva conflictos.
-
-Ejemplo:
-
-```text
-UIA dice:
-Editar = X:700 Y:400
-
-OCR dice:
-Editar = X:702 Y:401
-
-Vision AI dice:
-Editar = X:701 Y:402
-```
-
-El sistema debe combinar estas evidencias.
-
----
-
-# 9. UI STATE
-
-Crear una representación persistente del estado actual.
-
-Ejemplo:
-
-```json
-{
-  "application": "Chrome",
-  "window": "Admin",
-  "page": "Product Editor",
-  "elements": [],
-  "dialogs": [],
-  "notifications": [],
-  "last_action": null,
-  "timestamp": 0
-}
-```
-
-No volver a analizar toda la interfaz si no cambió.
-
----
-
-# 10. AGENTE
-
-El agente debe seguir:
-
-```text
-OBSERVE
-   ↓
-UNDERSTAND
-   ↓
-PLAN
-   ↓
-ACT
-   ↓
-VERIFY
-   ↓
-UPDATE STATE
-   ↓
-NEXT ACTION
-```
-
-No permitir:
-
-```text
-PLAN → ejecutar 50 acciones sin verificar
-```
-
-Las acciones importantes deben verificarse.
-
----
-
-# 11. ACTION ENGINE
-
-La IA no debe controlar directamente coordenadas.
-
-La IA debe generar acciones semánticas:
-
-```json
-{
-  "action": "click",
-  "target": "Guardar"
-}
-```
-
-o:
-
-```json
-{
-  "action": "type",
-  "target": "URL imagen",
-  "value": "https://example.com/image.jpg"
-}
-```
-
-El Action Engine resuelve el target mediante:
-
-```text
-UIA
-OCR
-OpenCV
-Vision
-```
-
-y solamente entonces ejecuta:
-
-```text
-mouse
-keyboard
-```
-
----
-
-# 12. VERIFICATION
-
-Después de cada acción relevante:
-
-```text
-ACTION
- ↓
-WAIT FOR STATE CHANGE
- ↓
-OBSERVE
- ↓
-VERIFY EXPECTED RESULT
-```
-
-Ejemplo:
-
-```text
-click "Guardar"
-
-esperar cambio
-
-buscar:
-"Producto actualizado correctamente"
-
-si aparece:
-SUCCESS
-
-si no aparece:
-RECOVER
-```
-
----
-
-# 13. RECOVERY
-
-El agente debe poder recuperarse de:
-
-- elemento no encontrado
-- ventana cerrada
-- página cambió
-- popup inesperado
-- timeout
-- OCR incorrecto
-- visión ambigua
-- click incorrecto
-- UI congelada
-
-Nunca asumir que la interfaz permanece igual.
-
----
-
-# 14. SAFETY
-
-Implementar desde el comienzo.
-
-Acciones clasificadas:
-
-### SAFE
-
-```text
-move
-scroll
-hover
-read
-screenshot
-OCR
-inspect
-```
-
-### MODERATE
-
-```text
-click
-type
-navigate
-```
-
-### DANGEROUS
-
-```text
-delete
-publish
-send
-purchase
-submit
-```
-
-Las acciones peligrosas deben tener mecanismos de confirmación.
-
-Crear:
-
-```python
-ActionRisk
-ActionPolicy
-ActionGuard
-ConfirmationManager
-```
-
----
-
-# 15. IA
-
-Crear una interfaz abstracta:
-
-```python
-class VisionModel:
-    async def analyze(self, frame, instruction):
-        ...
-
-    async def locate(self, frame, target):
-        ...
-
-class ReasoningModel:
-    async def plan(self, state, goal):
-        ...
-```
-
-No acoplar todo el sistema a un único proveedor.
-
----
-
-# 16. NO HACER
-
-No:
-
-- construir todo en un único archivo;
-- utilizar screenshots guardados constantemente;
-- enviar cada frame a una API;
-- usar IA para detectar elementos simples;
-- depender exclusivamente de coordenadas;
-- depender exclusivamente del DOM;
-- depender exclusivamente de UIA;
-- ejecutar acciones destructivas sin validación;
-- meter sleeps arbitrarios por todo el código;
-- ocultar errores;
-- ignorar métricas;
-- añadir dependencias innecesarias.
-
----
-
-# 17. DESARROLLO POR FASES
-
-NO intentes implementar todo de una vez.
-
-### FASE 1
-
-Construir solamente:
-
-```text
-Windows Graphics Capture
+Frame anterior + Frame nuevo
         ↓
-Frame Buffer
+OpenCV absdiff + umbral
         ↓
-FPS monitor
-        ↓
-Preview
+ChangeDetectionResult (regions, ratio, latency)
 ```
 
-Objetivo:
-
-**captura estable y de baja latencia.**
+**Estado:** IMPLEMENTADO · TESTEADO
+- `FrameChangeProcessor` detecta cambios entre pares de frames
+- `ProcessingMetrics` registra latencia, FPS, ratio
 
 ---
 
-### FASE 2
+### ✅ FASE 3 — Windows UI Automation
 
-Añadir:
+**Objetivo:** Leer el árbol de elementos de UI de Windows.
 
 ```text
-OpenCV
- ↓
-change detection
+Ventana activa
+      ↓
+WindowsUIAutomationInspector
+      ↓
+UIASnapshot (elements, bbox, name, type, automation_id)
+      ↓
+PerceptionElement (tipo normalizado para el agente)
 ```
+
+**Estado:** IMPLEMENTADO · TESTEADO · MEDIDO
+- Timeout configurable, límite de profundidad y elementos
+- Conversión automática `UIAElement → PerceptionElement`
+- Latencia típica: 20-200ms
 
 ---
 
-### FASE 3
+### ✅ FASE 4 — OCR (opcional)
 
-Añadir:
+**Objetivo:** Leer texto en pantalla que UIA no puede ver.
 
 ```text
-Windows UI Automation
+Frame → PaddleOCR → (text, bbox, confidence)
 ```
+
+**Estado:** IMPLEMENTADO como extra opcional (`pip install .[ocr]`)
 
 ---
 
-### FASE 4
+### ✅ FASE 5 — Action Engine
 
-Añadir:
+**Objetivo:** Ejecutar acciones de mouse y teclado de forma segura.
 
 ```text
-OCR
+ActionCommand (semántico)
+      ↓
+ActionGuard (safety policy)
+      ↓
+TargetResolver (text → coordenadas por UIA)
+      ↓
+PyAutoGUIActionExecutor
+      ↓
+Mouse / Keyboard (real o dry_run)
 ```
+
+**Estado:** IMPLEMENTADO · TESTEADO
+- `dry_run=True` por defecto (seguro)
+- `dry_run=False` para ejecución real (configurable por tool MCP)
+- Acciones: click, type, press, hotkey, scroll, navigate, move, hover
 
 ---
 
-### FASE 5
+### ✅ FASE 6 — Safety
 
-Añadir:
+**Objetivo:** Clasificar y controlar acciones por nivel de riesgo.
+
+| Nivel | Acciones |
+|---|---|
+| SAFE | move, hover, scroll, read, inspect |
+| MODERATE | click, type, press, hotkey, navigate |
+| DANGEROUS | delete, publish, send, purchase, submit |
+
+**Estado:** IMPLEMENTADO · TESTEADO
+- `ActionPolicy` + `ActionGuard` + `ConfirmationManager`
+
+---
+
+### 🔄 FASE 7 — Agent Loop (EN PROGRESO)
+
+**Objetivo:** Loop completo `OBSERVE → PLAN → ACT → VERIFY → RECOVER`.
 
 ```text
-Mouse
-Keyboard
+AgentObserver
+      ↓
+UIState (ventana activa + elementos UIA reales)
+      ↓
+RuleBasedPlanner (con historial, multi-paso)
+      ↓
+ActionEngine (dry_run configurable)
+      ↓
+Verifier (diff UIA real, no timestamp falso)
+      ↓
+RecoveryManager (estrategias ejecutables)
+      ↓
+AgentExecutor.run_task() (loop hasta éxito o max_steps)
 ```
+
+**Estado:** EN PROGRESO — implementado, pendiente benchmark
+
+**Nuevas capacidades (v2):**
+- `AgentObserver`: detecta ventana activa con ctypes (sin deps extra)
+- `UIState.with_observation()`: actualiza estado desde UIA real
+- `UIState.action_history`: memoria de acciones entre pasos
+- `run_task(goal, max_steps)`: loop completo multi-paso
+- `Verifier`: diff real de elementos UIA (no timestamp falso)
+- `RecoveryManager`: estrategias reales (scroll, Escape, INSPECT)
+- `RecoveryStep.execute=True`: recovery se ejecuta automáticamente
 
 ---
 
-### FASE 6
+### ⬜ FASE 8 — MCP Server & Complemento
 
-Añadir:
+**Objetivo:** Exponer RTDA como complemento para Claude Desktop y otros hosts MCP.
+
+**Estado:** IMPLEMENTADO · FUNCIONAL
+
+**Herramientas MCP disponibles:**
+
+| Tool | Descripción |
+|---|---|
+| `health` | Estado del servidor |
+| `inspect_uia` | Árbol UIA de una ventana |
+| `capture_monitors` | Lista de monitores |
+| `capture_diagnostic` | Diagnóstico de captura con métricas |
+| `plan_goal` | Genera plan desde instrucción |
+| `classify_action` | Clasifica riesgo de una acción |
+| `dry_run_action` | Simula una acción |
+| `get_focused_window` | ⭐ Ventana activa actual |
+| `observe_state` | ⭐ Observación completa del escritorio |
+| `run_task` | ⭐ Tarea multi-paso con loop completo |
+| `execute_action` | ⭐ Acción única con dry_run configurable |
+
+---
+
+## Criterios de evaluación del agente
+
+Un agente de control de escritorio robusto debe poder:
+
+| Criterio | Cómo medirlo |
+|---|---|
+| Interpretar instrucción | % de instrucciones que generan un plan no vacío |
+| Entender estado visual | UIState contiene ventana + elementos reales en cada ciclo |
+| Decidir siguiente acción | Tasa de planes correctos sobre instrucciones dadas |
+| Usar mouse/teclado | % de acciones SUCCESS vs FAILED en ejecución real |
+| Verificar resultado | % de verificaciones con diff real (no fallback) |
+| Recuperarse si falla | % de recoveries que desbloquean el ciclo siguiente |
+| Tareas largas | Completar tareas de 5+ pasos sin perder contexto |
+| Velocidad del ciclo | Latencia end-to-end observe→act < 500ms |
+| Detectar cambio de ventana | `focused_window` correcto después de cada acción |
+| Telemetría | `elapsed_ms` por fase disponible en cada resultado |
+
+---
+
+## Benchmark de tareas representativas
+
+### Nivel 1 — Acción simple (1 paso)
+- Hacer click en un botón específico
+- Escribir texto en un campo
+- Presionar una tecla de atajo
+- Hacer scroll en una ventana
+
+### Nivel 2 — Multi-paso (2-3 pasos)
+- Abrir una aplicación y esperar que cargue
+- Crear un archivo nuevo y guardarlo con nombre
+- Seleccionar texto y copiarlo
+
+### Nivel 3 — Multi-ventana (4-6 pasos)
+- Copiar datos de una app a otra
+- Navegar entre ventanas y ejecutar acción en cada una
+- Completar un formulario con varios campos
+
+### Nivel 4 — Secuencia completa (7+ pasos)
+- Abrir app → crear documento → escribir contenido → guardar → cerrar
+- Buscar información en una página → copiarla → pegarla en otro lugar
+- Ejecutar una secuencia completa de trabajo sin intervención
+
+---
+
+## Reglas de desarrollo
+
+### Nunca hacer
+- Construir todo en un único archivo
+- Usar screenshots guardados en disco para el loop
+- Enviar cada frame a una API de IA
+- Usar IA para detectar elementos que UIA puede leer
+- Ejecutar acciones destructivas sin validación
+- Meter sleeps arbitrarios sin medir
+- Ocultar errores
+- Ignorar métricas
+- Avanzar a la siguiente fase si la anterior no está testeada
+
+### Siempre hacer
+- Medir latencia por fase (observe_ms, plan_ms, execute_ms, verify_ms)
+- Verificar antes de asumir éxito
+- Exponer dry_run antes de ejecutar en producción
+- Documentar decisiones de diseño
+- Testear cada módulo de forma aislada
+
+---
+
+## Métricas objetivo
 
 ```text
-Vision AI
+Ciclo completo observe→act:   < 500ms
+UIA snapshot latencia:        < 200ms
+Captura DXGI latencia:        < 10ms
+Resolución de target:         < 50ms
+Verificación post-acción:     < 400ms (incluye wait_ms)
 ```
 
 ---
 
-### FASE 7
+## Roadmap de mejoras pendientes
 
-Añadir:
-
-```text
-Agent
-Planner
-Verifier
-Recovery
-```
-
----
-
-### FASE 8
-
-Añadir:
-
-```text
-MCP
-plugins
-tools
-```
-
----
-
-# 18. PRIMER OBJETIVO
-
-NO quiero que empieces construyendo el agente de IA.
-
-Primero crea un prototipo funcional llamado:
-
-**RTDA Capture Engine**
-
-Debe:
-
-1. detectar los monitores disponibles;
-2. seleccionar un monitor;
-3. iniciar captura continua;
-4. mantener frames en memoria;
-5. mostrar preview;
-6. mostrar FPS;
-7. mostrar resolución;
-8. medir latencia;
-9. detectar frames perdidos;
-10. permitir detener/reanudar;
-11. permitir seleccionar una región;
-12. permitir capturar una ventana específica si Windows lo permite.
-
-Debe existir una interfaz:
-
-```python
-class ScreenCapture:
-    def start(self):
-        ...
-
-    def stop(self):
-        ...
-
-    def latest_frame(self):
-        ...
-
-    def get_fps(self):
-        ...
-
-    def get_latency(self):
-        ...
-```
-
----
-
-# 19. DOCUMENTACIÓN
-
-Cada módulo debe tener documentación.
-
-Antes de implementar una parte importante:
-
-1. consultar documentación oficial;
-2. identificar API correcta;
-3. explicar decisiones;
-4. implementar;
-5. crear prueba;
-6. medir rendimiento;
-7. documentar resultado.
-
-No inventes APIs.
-
-Si una API de Windows cambia entre versiones, verificar primero la documentación oficial.
-
----
-
-# 20. FORMA DE TRABAJAR
-
-Quiero que actúes como:
-
-**Senior Windows Systems Engineer + Computer Vision Engineer + AI Agent Architect.**
-
-No quiero que simplemente generes código.
-
-Quiero que:
-
-- analices arquitectura;
-- investigues documentación;
-- señales problemas técnicos;
-- midas rendimiento;
-- propongas alternativas;
-- escribas código mantenible;
-- hagas tests;
-- documentes decisiones;
-- mantengas compatibilidad con Windows 11.
-
-Cuando exista más de una solución, compara:
-
-```text
-opción
-latencia
-CPU
-GPU
-complejidad
-estabilidad
-mantenibilidad
-```
-
-y recomienda una.
-
----
-
-# 21. REGLA CRÍTICA
-
-Nunca avances automáticamente a la siguiente fase si la anterior no está funcionando.
-
-Cada fase debe terminar con:
-
-```text
-IMPLEMENTADO
-TESTEADO
-MEDIDO
-DOCUMENTADO
-```
-
-Antes de escribir código de una fase, explícame:
-
-1. qué vamos a construir;
-2. qué APIs utilizaremos;
-3. por qué;
-4. qué alternativas existen;
-5. cómo mediremos el resultado;
-6. qué archivos modificaremos.
-
-Después implementa.
-
----
-
-# 22. PRIMERA TAREA
-
-Comienza exclusivamente con:
-
-**FASE 1 — RTDA Capture Engine**
-
-Investiga y compara:
-
-1. Windows Graphics Capture
-2. Desktop Duplication API
-3. MSS
-4. DXGI
-5. otras alternativas relevantes para captura de escritorio de baja latencia en Windows 11.
-
-Después crea una tabla comparativa:
-
-```text
-Tecnología
-FPS
-Latencia
-CPU
-GPU
-Captura monitor
-Captura ventana
-Complejidad
-Python support
-Estabilidad
-Recomendación
-```
-
-Después de la comparación, elige la mejor arquitectura para RTDA.
-
-NO implementes todavía OCR, OpenCV, IA, UIA, mouse ni teclado.
-
-Primero quiero conseguir una captura de escritorio de alta velocidad, estable y medible.
-
-El objetivo inicial es:
-
-```text
-SCREEN
-  ↓
-LOW-LATENCY CAPTURE
-  ↓
-FRAME BUFFER
-  ↓
-REAL-TIME PREVIEW
-  ↓
-FPS / LATENCY METRICS
-```
-
-Construye el proyecto de forma incremental y profesional.
+| Prioridad | Mejora |
+|---|---|
+| 🔴 P1 | Benchmark automatizado de tareas (20-30 pruebas) |
+| 🔴 P1 | Telemetría por fase en AgentTaskResult |
+| 🟡 P2 | Resolver con UIA live cuando target no está en elementos |
+| 🟡 P2 | Integración OCR en pipeline de percepción |
+| 🟡 P2 | Detección de diálogos / popups inesperados |
+| 🟠 P3 | Vision AI local (ONNX) para elementos no detectables por UIA |
+| 🟠 P3 | Memoria persistente entre sesiones del agente |
+| 🟠 P3 | Dashboard de métricas en tiempo real |

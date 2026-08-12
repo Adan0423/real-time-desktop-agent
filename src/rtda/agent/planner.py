@@ -41,12 +41,15 @@ class RuleBasedPlanner:
 
         # Build set of recently-failed targets to avoid repeating them
         failed_targets: set[str] = set()
+        completed_count = 0
         for result in (history or ()):
             from rtda.models.actions import ActionStatus
             if result.status in (ActionStatus.FAILED, ActionStatus.BLOCKED):
                 t = result.command.target
                 if t:
                     failed_targets.add(t.casefold())
+            elif result.status in (ActionStatus.SUCCESS, ActionStatus.DRY_RUN):
+                completed_count += 1
 
         # Try to decompose compound instructions
         parts = self._split_compound(normalized)
@@ -56,14 +59,21 @@ class RuleBasedPlanner:
                 cmd = self._parse_single(part.strip(), state, failed_targets)
                 if cmd is not None:
                     actions.append(cmd)
-            if actions:
+            # Skip already completed actions from compound goal
+            remaining_actions = actions[completed_count:]
+            if remaining_actions:
                 return ActionPlan(
                     goal=goal,
-                    actions=tuple(actions),
-                    rationale=f"compound goal decomposed into {len(actions)} actions",
+                    actions=tuple(remaining_actions),
+                    rationale=f"compound goal ({len(remaining_actions)} actions remaining)",
                 )
+            elif actions:
+                return ActionPlan(goal=goal, actions=(), rationale="all compound actions completed")
 
-        # Single instruction
+        # Single instruction: if already completed 1+ actions for this single goal, we are done
+        if completed_count > 0:
+            return ActionPlan(goal=goal, actions=(), rationale="single goal action completed")
+
         cmd = self._parse_single(normalized, state, failed_targets)
         if cmd is not None:
             return ActionPlan(goal=goal, actions=(cmd,), rationale=self._rationale(cmd))
