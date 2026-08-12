@@ -1,6 +1,6 @@
 {
   "name": "real-time-desktop-agent",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0-beta",
   "description": "Realtime Windows desktop complement for AI agents with capture, vision, mouse, keyboard, UIA, and safe dry-run actions.",
   "author": {
     "name": "Adan0423",
@@ -13,15 +13,17 @@
   "interface": {
     "displayName": "Real-Time Desktop Agent",
     "shortDescription": "Realtime desktop capture and safe automation tools for AI agents.",
-    "longDescription": "Expose RTDA as a local MCP-backed plugin for ChatGPT and Codex. The plugin provides monitor discovery, capture diagnostics, UI Automation inspection, planning, action classification, and dry-run action execution.",
+    "longDescription": "Expose RTDA as a local MCP-backed plugin for ChatGPT and Codex. The plugin provides 13 core tools including monitor discovery, capture diagnostics, UI Automation inspection, goal planning, multi-modal desktop observation, UI element search, risk classification, direct desktop actions (mouse/keyboard), and autonomous multi-step task execution.",
     "developerName": "Adan0423",
+    "icon": "icon.png",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
     "defaultPrompt": [
-      "Use Real-Time Desktop Agent to list available monitors.",
-      "Use Real-Time Desktop Agent to run a capture diagnostic.",
-      "Use Real-Time Desktop Agent to inspect UIA elements for the active desktop workflow."
+      "Use Real-Time Desktop Agent to observe current desktop state and active window.",
+      "Use Real-Time Desktop Agent to run an autonomous multi-step task.",
+      "Use Real-Time Desktop Agent to inspect UIA elements and find UI controls.",
+      "Use Real-Time Desktop Agent to run a capture diagnostic."
     ],
-    "brandColor": "#10A37F"
+    "brandColor": "#7c3aed"
   }
 }

@@ -17,6 +17,7 @@ Copy-Item -LiteralPath (Join-Path $root "pyproject.toml") -Destination $stage
 Copy-Item -LiteralPath (Join-Path $root "mcpb_server.py") -Destination $stage
 Copy-Item -LiteralPath (Join-Path $root "README.md") -Destination $stage
 Copy-Item -LiteralPath (Join-Path $root "LICENSE") -Destination $stage
+Copy-Item -LiteralPath (Join-Path $root "packaging\mcpb\icon.png") -Destination $stage
 Copy-Item -LiteralPath (Join-Path $root "src") -Destination $stage -Recurse
 
 npx @anthropic-ai/mcpb validate (Join-Path $stage "manifest.json")
