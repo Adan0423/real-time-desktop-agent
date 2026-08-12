@@ -54,7 +54,7 @@ python -m pytest
 Resultado local del 2026-08-11:
 
 ```text
-47 passed
+63 passed
 ```
 
 Verificaciones adicionales:

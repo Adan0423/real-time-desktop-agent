@@ -32,6 +32,7 @@ Modelos por defecto:
 - Anthropic se llama con el header estable `anthropic-version: 2023-06-01`.
 - OpenRouter, Groq, TokenRouter y NVIDIA usan una ruta comun compatible con
   OpenAI Chat Completions.
+- `RTDA_AI_PROVIDER=qroq` se normaliza a `groq` para tolerar ese typo.
 - El modelo queda editable en la UI porque los planes gratis, disponibilidad y
   rate limits cambian por proveedor.
 - Las pruebas usan transporte fake; no hacen llamadas reales ni requieren token.

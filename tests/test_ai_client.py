@@ -102,7 +102,7 @@ def test_openrouter_and_nvidia_send_provider_specific_headers() -> None:
 
 
 def test_ai_config_from_env_supports_new_providers(monkeypatch) -> None:
-    monkeypatch.setenv("RTDA_AI_PROVIDER", "groq")
+    monkeypatch.setenv("RTDA_AI_PROVIDER", "qroq")
     monkeypatch.setenv("GROQ_API_KEY", "gsk-secret")
 
     config = AIClientConfig.from_env()

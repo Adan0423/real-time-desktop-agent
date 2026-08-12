@@ -26,6 +26,11 @@ AI_PROVIDER_ENV_VARS: dict[AIProvider, str] = {
     "tokenrouter": "TOKENROUTER_API_KEY",
     "nvidia": "NVIDIA_API_KEY",
 }
+AI_PROVIDER_ALIASES: dict[str, AIProvider] = {
+    "qroq": "groq",
+    "nvidia-nim": "nvidia",
+    "nvidia_nim": "nvidia",
+}
 OPENAI_COMPATIBLE_CHAT_ENDPOINTS: dict[AIProvider, str] = {
     "openrouter": "https://openrouter.ai/api/v1/chat/completions",
     "groq": "https://api.groq.com/openai/v1/chat/completions",
@@ -199,6 +204,8 @@ class AIClient:
 
 def normalize_provider(provider: str) -> AIProvider:
     selected = provider.strip().lower()
+    if selected in AI_PROVIDER_ALIASES:
+        return AI_PROVIDER_ALIASES[selected]
     if selected in AI_PROVIDERS:
         return selected  # type: ignore[return-value]
     allowed = ", ".join(AI_PROVIDERS)
