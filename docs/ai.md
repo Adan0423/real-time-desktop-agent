@@ -11,7 +11,7 @@ usa un cliente interno pequeno (`rtda.ai.AIClient`) con varios proveedores:
 | Anthropic | Messages API | `POST /v1/messages` | `ANTHROPIC_API_KEY` o campo UI |
 | OpenRouter | Chat Completions compatible | `POST /api/v1/chat/completions` | `OPENROUTER_API_KEY` o campo UI |
 | Groq | Chat Completions compatible | `POST /openai/v1/chat/completions` | `GROQ_API_KEY` o campo UI |
-| TokenRouter | Chat Completions compatible | `POST /v1/chat/completions` | `TOKENROUTER_API_KEY` o campo UI |
+| TokenRouter | Chat Completions compatible | `POST https://api.tokenrouter.com/v1/chat/completions` | `TOKENROUTER_API_KEY` o campo UI |
 | NVIDIA NIM | Chat Completions compatible | `POST /v1/chat/completions` | `NVIDIA_API_KEY` o campo UI |
 
 Modelos por defecto:
@@ -20,19 +20,38 @@ Modelos por defecto:
 - Anthropic: `claude-sonnet-5`
 - OpenRouter: `openrouter/free`
 - Groq: `llama-3.3-70b-versatile`
-- TokenRouter: `auto:cost`
+- TokenRouter: `moonshotai/kimi-k3-free`
 - NVIDIA NIM: `meta/llama-3.3-70b-instruct`
 
 ## Decisiones
 
 - No se agregan dependencias nuevas: el cliente usa `urllib` y JSON.
 - El token se usa solo en memoria o desde entorno si ya existe.
+- RTDA no carga `.env` automaticamente. Si usas variables de entorno, debes
+  definirlas en la sesion antes de abrir la app.
+- La respuesta se muestra en la caja de salida del panel IA, debajo del boton
+  `Consultar IA`.
+- Cada consulta usa una observacion visual viva de RTDA, si la captura esta
+  activa. Es una muestra transitoria del estado actual del escritorio para esa
+  solicitud, no un historial, una grabacion ni una sesion de video.
+- La codificacion necesaria para enviar la observacion al proveedor ocurre solo
+  en RAM y se libera al finalizar la solicitud. RTDA no escribe screenshots ni
+  frames a disco.
 - OpenAI se llama con `store=false` para evitar almacenamiento intencional de
   estado de respuesta desde RTDA.
 - Anthropic se llama con el header estable `anthropic-version: 2023-06-01`.
 - OpenRouter, Groq, TokenRouter y NVIDIA usan una ruta comun compatible con
   OpenAI Chat Completions.
 - `RTDA_AI_PROVIDER=qroq` se normaliza a `groq` para tolerar ese typo.
+- El preset TokenRouter usa `moonshotai/kimi-k3-free`; al ser free, su
+  capacidad, estabilidad y concurrencia dependen del proveedor. Free no
+  significa sin token: TokenRouter igual requiere `TOKENROUTER_API_KEY`.
+  Si el modelo seleccionado es solo texto, el proveedor puede rechazar o
+  ignorar la observacion visual. Para preguntas como "que puedes ver", elige
+  un modelo multimodal compatible con imagen.
+- `TOKENROUTER_BASE_URL` permite cambiar la URL base. Acepta valores como
+  `https://api.tokenrouter.com/v1` o la ruta completa
+  `https://api.tokenrouter.com/v1/chat/completions`.
 - El modelo queda editable en la UI porque los planes gratis, disponibilidad y
   rate limits cambian por proveedor.
 - Las pruebas usan transporte fake; no hacen llamadas reales ni requieren token.
@@ -65,6 +84,22 @@ Implementado:
 
 No implementado todavia:
 
-- envio de screenshot o frame codificado al modelo;
 - streaming;
-- tool calling directo desde el proveedor IA.
+- ciclo de herramientas directo entre un proveedor IA y las acciones RTDA.
+
+## Alcance de tiempo real
+
+RTDA es el runtime local que permite a una IA observar el escritorio, consultar
+UI Automation y ejecutar acciones permitidas de mouse o teclado. La app de
+escritorio es una superficie de prueba de ese runtime.
+
+El panel IA actual realiza una consulta puntual con el estado vivo disponible.
+No abre un canal de video continuo con los proveedores, porque los endpoints
+Chat Completions de los proveedores configurados son solicitudes HTTP discretas.
+Para un agente autonomo, el siguiente paso es un ciclo controlado:
+
+`observar estado vivo -> planificar -> solicitar/validar accion RTDA -> verificar nuevo estado`
+
+Las acciones no se entregan automaticamente al proveedor desde este panel. Se
+mantienen detras de `ActionGuard`, dry-run y confirmaciones para evitar que una
+respuesta remota controle el escritorio sin limites.

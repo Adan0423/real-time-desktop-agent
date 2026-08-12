@@ -4,9 +4,11 @@ Ultima actualizacion: 2026-08-11
 
 ## Critico para MVP
 
-1. Enviar screenshot/frame al proveedor IA.
-   - Estado actual: el panel IA envia texto y contexto de metricas.
-   - Necesario: codificar ultimo frame como imagen y usar entrada multimodal.
+1. Conectar el ciclo IA con herramientas RTDA.
+   - Estado actual: el panel IA consulta el estado vivo disponible, pero no
+     ejecuta acciones provenientes del proveedor.
+   - Necesario: protocolo de acciones estructuradas, confirmacion por riesgo,
+     verificacion posterior y limite de pasos.
 
 2. Probar `.mcpb` en Claude Desktop.
    - Estado actual: manifest validado y paquete local generado en `dist/real-time-desktop-agent-0.1.0.mcpb`.

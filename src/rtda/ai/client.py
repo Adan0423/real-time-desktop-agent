@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
@@ -34,7 +35,7 @@ AI_PROVIDER_ALIASES: dict[str, AIProvider] = {
 OPENAI_COMPATIBLE_CHAT_ENDPOINTS: dict[AIProvider, str] = {
     "openrouter": "https://openrouter.ai/api/v1/chat/completions",
     "groq": "https://api.groq.com/openai/v1/chat/completions",
-    "tokenrouter": "https://api.tokenrouter.io/v1/chat/completions",
+    "tokenrouter": "https://api.tokenrouter.com/v1/chat/completions",
     "nvidia": "https://integrate.api.nvidia.com/v1/chat/completions",
 }
 
@@ -78,7 +79,10 @@ class AIClientConfig:
         env_value = os.getenv(env_name)
         if env_value:
             return env_value
-        raise AIClientError(f"missing API token for provider '{self.provider}'")
+        raise AIClientError(
+            f"missing API token for provider '{self.provider}'. "
+            f"Paste it in the desktop Token field or set {env_name} before starting RTDA."
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -100,7 +104,7 @@ def default_model(provider: AIProvider) -> str:
     if provider == "groq":
         return "llama-3.3-70b-versatile"
     if provider == "tokenrouter":
-        return "auto:cost"
+        return "moonshotai/kimi-k3-free"
     if provider == "nvidia":
         return "meta/llama-3.3-70b-instruct"
     raise ValueError("unsupported provider")
@@ -111,19 +115,25 @@ class AIClient:
         self.config = config
         self._transport = transport or _post_json
 
-    def complete(self, prompt: str, *, system: str | None = None) -> AIResponse:
+    def complete(
+        self,
+        prompt: str,
+        *,
+        system: str | None = None,
+        image_data_url: str | None = None,
+    ) -> AIResponse:
         prompt = prompt.strip()
         if not prompt:
             raise AIClientError("prompt is empty")
         if self.config.provider == "openai":
-            return self._complete_openai(prompt, system=system)
+            return self._complete_openai(prompt, system=system, image_data_url=image_data_url)
         if self.config.provider == "anthropic":
-            return self._complete_anthropic(prompt, system=system)
+            return self._complete_anthropic(prompt, system=system, image_data_url=image_data_url)
         if self.config.provider in OPENAI_COMPATIBLE_CHAT_ENDPOINTS:
-            return self._complete_openai_compatible_chat(prompt, system=system)
+            return self._complete_openai_compatible_chat(prompt, system=system, image_data_url=image_data_url)
         raise AIClientError(f"unsupported provider: {self.config.provider}")
 
-    def _complete_openai(self, prompt: str, *, system: str | None) -> AIResponse:
+    def _complete_openai(self, prompt: str, *, system: str | None, image_data_url: str | None) -> AIResponse:
         model = self.config.resolved_model()
         payload: dict[str, Any] = {
             "model": model,
@@ -133,6 +143,16 @@ class AIClient:
         }
         if system:
             payload["instructions"] = system
+        if image_data_url:
+            payload["input"] = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": prompt},
+                        {"type": "input_image", "image_url": image_data_url},
+                    ],
+                }
+            ]
         raw = self._transport(
             "https://api.openai.com/v1/responses",
             {
@@ -149,12 +169,22 @@ class AIClient:
             raw=raw,
         )
 
-    def _complete_anthropic(self, prompt: str, *, system: str | None) -> AIResponse:
+    def _complete_anthropic(self, prompt: str, *, system: str | None, image_data_url: str | None) -> AIResponse:
         model = self.config.resolved_model()
+        message_content: str | list[dict[str, Any]] = prompt
+        if image_data_url:
+            media_type, data = _parse_data_url(image_data_url)
+            message_content = [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image",
+                    "source": {"type": "base64", "media_type": media_type, "data": data},
+                },
+            ]
         payload: dict[str, Any] = {
             "model": model,
             "max_tokens": self.config.max_output_tokens,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": [{"role": "user", "content": message_content}],
         }
         if system:
             payload["system"] = system
@@ -175,13 +205,25 @@ class AIClient:
             raw=raw,
         )
 
-    def _complete_openai_compatible_chat(self, prompt: str, *, system: str | None) -> AIResponse:
+    def _complete_openai_compatible_chat(
+        self,
+        prompt: str,
+        *,
+        system: str | None,
+        image_data_url: str | None,
+    ) -> AIResponse:
         provider = normalize_provider(self.config.provider)
         model = self.config.resolved_model()
-        messages: list[dict[str, str]] = []
+        messages: list[dict[str, Any]] = []
         if system:
             messages.append({"role": "system", "content": system})
-        messages.append({"role": "user", "content": prompt})
+        user_content: str | list[dict[str, Any]] = prompt
+        if image_data_url:
+            user_content = [
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": image_data_url}},
+            ]
+        messages.append({"role": "user", "content": user_content})
         payload: dict[str, Any] = {
             "model": model,
             "messages": messages,
@@ -189,7 +231,7 @@ class AIClient:
             "stream": False,
         }
         raw = self._transport(
-            OPENAI_COMPATIBLE_CHAT_ENDPOINTS[provider],
+            _chat_endpoint_for_provider(provider),
             _headers_for_chat_provider(provider, self.config.resolved_api_key()),
             payload,
             self.config.timeout_s,
@@ -214,6 +256,17 @@ def normalize_provider(provider: str) -> AIProvider:
 
 def env_var_for_provider(provider: AIProvider) -> str:
     return AI_PROVIDER_ENV_VARS[normalize_provider(provider)]
+
+
+def _chat_endpoint_for_provider(provider: AIProvider) -> str:
+    if provider == "tokenrouter":
+        base_url = os.getenv("TOKENROUTER_BASE_URL", "").strip()
+        if base_url:
+            clean = base_url.rstrip("/")
+            if clean.endswith("/chat/completions"):
+                return clean
+            return f"{clean}/chat/completions"
+    return OPENAI_COMPATIBLE_CHAT_ENDPOINTS[provider]
 
 
 def _headers_for_chat_provider(provider: AIProvider, api_key: str) -> dict[str, str]:
@@ -245,8 +298,8 @@ def _post_json(
         raise AIClientError(f"AI provider returned HTTP {exc.code}: {_safe_error_body(body)}") from exc
     except urllib.error.URLError as exc:
         raise AIClientError(f"AI provider request failed: {exc.reason}") from exc
-    except TimeoutError as exc:
-        raise AIClientError("AI provider request timed out") from exc
+    except (TimeoutError, socket.timeout) as exc:
+        raise AIClientError(f"AI provider request timed out after {timeout_s:.0f}s") from exc
     try:
         decoded = json.loads(body)
     except json.JSONDecodeError as exc:
@@ -259,6 +312,14 @@ def _post_json(
 def _safe_error_body(body: str) -> str:
     compact = " ".join(body.split())
     return compact[:300]
+
+
+def _parse_data_url(data_url: str) -> tuple[str, str]:
+    prefix, separator, data = data_url.partition(",")
+    if not separator or not prefix.startswith("data:") or ";base64" not in prefix:
+        raise AIClientError("image payload must be a base64 data URL")
+    media_type = prefix.removeprefix("data:").split(";", 1)[0]
+    return media_type, data
 
 
 def _extract_openai_text(raw: Mapping[str, Any]) -> str:

@@ -141,13 +141,14 @@ class CaptureDashboard:
             self.sidebar.ai.output.setText("IA: escribe un prompt primero")
             return
         stats = self._bridge.metrics()
+        frame = self._bridge.latest_frame()
         system = build_ai_system_prompt(
             backend=self._bridge.config.backend,
             stats=stats,
-            frame=self._bridge.latest_frame(),
+            frame=frame,
         )
         self.sidebar.ai.set_busy(True)
-        self._ai_runner.submit(self.sidebar.ai.request_config(), prompt, system)
+        self._ai_runner.submit(self.sidebar.ai.request_config(), prompt, system, frame)
         self.ai_timer.start()
 
     def _connect_signals(self) -> None:

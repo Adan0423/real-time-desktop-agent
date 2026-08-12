@@ -30,7 +30,7 @@ flowchart TD
     Desktop --> Preview["Preview PySide6"]
     Desktop --> Floating["Floating Control"]
     Desktop --> Overlay["GreenCaptureOverlay"]
-    Desktop --> AI["AI Token Test Panel"]
+    Desktop --> AI["AI Live Observation Test Panel"]
     Buffer --> Change["OpenCV Change Detection"]
     Input --> UIA["Windows UI Automation"]
     Buffer --> OCR["PaddleOCR Adapter"]
@@ -124,8 +124,11 @@ sequenceDiagram
 - `ActionGuard` clasifica acciones en `safe`, `moderate` y `dangerous`.
 - Acciones destructivas como `delete`, `publish`, `send`, `purchase` y `submit`
   se tratan como peligrosas.
-- El panel IA no recibe frames todavia; usa prompt y contexto textual de
-  metricas.
+- El panel IA consulta el estado vivo que RTDA tiene en ese momento. La
+  observacion visual se mantiene y procesa solo en RAM; no hay historial de
+  capturas ni grabacion de pantalla.
+- El panel IA no convierte una respuesta del proveedor en acciones de escritorio
+  automaticamente. Las acciones siguen la frontera `ActionGuard`.
 - El control flotante solo llama operaciones de runtime: start, pause, stop,
   open y quit.
 
@@ -138,4 +141,6 @@ sequenceDiagram
 - El OCR real depende de una version de Python compatible con PaddlePaddle.
 - El MCPB tiene manifiesto validado y paquete local generado; falta prueba
   manual de instalacion en Claude Desktop.
-- La vision multimodal hacia proveedores IA todavia no envia imagen/frame.
+- Los endpoints HTTP configurados no constituyen un canal de video continuo.
+  El agente autonomo requiere conectar el ciclo de herramientas RTDA con las
+  confirmaciones y verificaciones de acciones.

@@ -54,6 +54,16 @@ def test_ai_panel_syncs_provider_model() -> None:
 
     assert panel.model.text() == default_model("openrouter")
 
+    panel.sync_model("tokenrouter")
+
+    assert panel.model.text() == default_model("tokenrouter")
+    assert "TOKENROUTER_API_KEY" in panel.token.placeholderText()
+    assert panel.output.isReadOnly() is True
+
+    panel.provider.setCurrentText("tokenrouter")
+
+    assert panel.request_config().timeout_s == 90.0
+
     panel.widget.deleteLater()
     app.processEvents()
 

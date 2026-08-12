@@ -10,8 +10,9 @@ arquitectura ya separa el complemento funcional (`src/rtda`) de la app de
 escritorio (`desktop/`). `rtda.app` queda como launcher y `rtda.extension`
 como ruta compatible para imports antiguos.
 
-La ruta de IA con token existe para texto/contexto, pero aun no envia frames
-multimodales a proveedores externos.
+La ruta de IA con token puede consultar el estado vivo de RTDA con proveedores
+multimodales compatibles. La observacion se prepara solo para la solicitud en
+curso y no se almacena en disco.
 
 ## Estado por Modulo
 
@@ -39,7 +40,7 @@ multimodales a proveedores externos.
 | MCPB manifest Claude | Implementado | Manifest validado con `mcpb validate` |
 | MCPB paquete local | Parcial | `.mcpb` generado; falta prueba manual en Claude Desktop |
 | Plugin local ChatGPT/Codex | Implementado | `.codex-plugin/plugin.json`, `.mcp.json`, marketplace repo |
-| Panel IA con token | Parcial | Texto multi-proveedor; falta imagen/frame |
+| Panel IA con token | Parcial | Consulta estado vivo multi-proveedor; falta ciclo de herramientas para acciones |
 | Base de datos | No implementado | No hay modulo DB |
 | CI/CD | No implementado | No hay workflows `.github` |
 
@@ -54,7 +55,7 @@ python -m pytest
 Resultado local del 2026-08-11:
 
 ```text
-63 passed
+70 passed
 ```
 
 Verificaciones adicionales:
@@ -88,7 +89,7 @@ Cobertura funcional actual por archivos:
 
 El MVP debe cerrar cuatro puntos:
 
-1. Enviar frame/screenshot al proveedor IA.
+1. Conectar un ciclo IA de observar-planificar-actuar-verificar con RTDA.
 2. Probar instalacion manual del `.mcpb` en Claude Desktop.
 3. Convertir el runtime in-process en opcion de servicio local persistente.
 4. Endurecer permisos y confirmaciones antes de acciones reales.
