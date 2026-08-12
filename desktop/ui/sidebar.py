@@ -3,7 +3,8 @@ from __future__ import annotations
 from rtda.capture.interface import CaptureConfig, MonitorInfo
 
 from desktop.ui.ai_panel import AiPanel
-from desktop.ui.runtime_panel import RuntimePanel
+from desktop.ui.runtime_panel import ActionBar, RuntimePanel
+from desktop.ui.settings_panel import SettingsPanel
 from desktop.ui.target_panel import TargetPanel
 from desktop.ui.widgets import StatusPill, make_label
 
@@ -17,8 +18,9 @@ class ControlSidebar:
         config: CaptureConfig,
         enable_perception_tools: bool,
         show_capture_overlay: bool = True,
+        show_floating_control: bool = True,
     ) -> None:
-        from PySide6.QtWidgets import QFrame, QTabWidget, QVBoxLayout
+        from PySide6.QtWidgets import QFrame, QHBoxLayout, QPushButton, QStackedWidget, QVBoxLayout
 
         self.status = StatusPill("Extension local lista")
         self.target = TargetPanel(
@@ -28,24 +30,54 @@ class ControlSidebar:
         )
         self.runtime = RuntimePanel(enable_perception_tools=enable_perception_tools)
         self.ai = AiPanel()
+        self.settings = SettingsPanel(
+            enable_perception_tools=enable_perception_tools,
+            show_capture_overlay=show_capture_overlay,
+            show_floating_control=show_floating_control,
+        )
+        self.actions = ActionBar(enable_perception_tools=enable_perception_tools)
 
-        tabs = QTabWidget()
-        tabs.setObjectName("modeTabs")
-        tabs.addTab(self._capture_tab(), "Captura")
-        tabs.addTab(self.ai.widget, "IA")
+        self.pages = QStackedWidget()
+        self.pages.setObjectName("pageStack")
+        self.pages.addWidget(self._page(self.target.widget))
+        self.pages.addWidget(self._page(self.runtime.widget))
+        self.pages.addWidget(self.ai.widget)
+        self.pages.addWidget(self._page(self.settings.widget))
+
+        nav = QHBoxLayout()
+        nav.setContentsMargins(0, 0, 0, 0)
+        nav.setSpacing(6)
+        self.page_buttons: dict[str, QPushButton] = {}
+        for index, (key, label) in enumerate(
+            (
+                ("capture", "Captura"),
+                ("metrics", "Metricas"),
+                ("ai", "IA"),
+                ("settings", "Config"),
+            )
+        ):
+            button = QPushButton(label)
+            button.setObjectName("navButton")
+            button.setCheckable(True)
+            button.clicked.connect(lambda _checked=False, page=index: self.set_page(page))
+            nav.addWidget(button)
+            self.page_buttons[key] = button
+        self.set_page(0)
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(14, 14, 14, 14)
-        layout.setSpacing(10)
-        layout.addWidget(make_label("RTDA Desktop", "appTitle"))
-        layout.addWidget(make_label("Control local del complemento IA", "mutedText"))
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(8)
+        layout.addWidget(make_label("RTDA", "appTitle"))
+        layout.addWidget(make_label("Desktop bridge", "mutedText"))
         layout.addWidget(self.status.widget)
-        layout.addWidget(tabs, 1)
+        layout.addLayout(nav)
+        layout.addWidget(self.pages, 1)
+        layout.addWidget(self.actions.widget)
 
         self.widget = QFrame()
         self.widget.setObjectName("sidebar")
-        self.widget.setMinimumWidth(308)
-        self.widget.setMaximumWidth(330)
+        self.widget.setMinimumWidth(292)
+        self.widget.setMaximumWidth(310)
         self.widget.setLayout(layout)
 
     def set_monitors(self, monitors: list[MonitorInfo]) -> None:
@@ -60,16 +92,20 @@ class ControlSidebar:
             return
         self.status.set("Extension local lista", "idle")
 
-    def _capture_tab(self):
+    def set_page(self, index: int) -> None:
+        self.pages.setCurrentIndex(index)
+        for button_index, button in enumerate(self.page_buttons.values()):
+            button.setChecked(button_index == index)
+
+    def _page(self, child):
         from PySide6.QtWidgets import QVBoxLayout, QWidget
 
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 10, 0, 0)
-        layout.setSpacing(10)
-        layout.addWidget(self.target.widget)
-        layout.addWidget(self.runtime.widget)
+        layout.setContentsMargins(0, 8, 0, 0)
+        layout.setSpacing(8)
+        layout.addWidget(child)
         layout.addStretch(1)
 
-        tab = QWidget()
-        tab.setLayout(layout)
-        return tab
+        page = QWidget()
+        page.setLayout(layout)
+        return page

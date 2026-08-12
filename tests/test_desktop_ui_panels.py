@@ -16,7 +16,6 @@ def test_target_panel_returns_compact_capture_selection() -> None:
     panel = TargetPanel(
         config=CaptureConfig(target_fps=75),
         enable_perception_tools=True,
-        show_capture_overlay=False,
     )
     panel.set_monitors([])
     panel.region_enabled.setChecked(True)
@@ -32,7 +31,7 @@ def test_target_panel_returns_compact_capture_selection() -> None:
     assert selection.target_fps == 75
     assert selection.region is not None
     assert selection.region.to_tuple() == (10, 20, 800, 600)
-    assert selection.show_border is False
+    assert panel._region_container.isHidden() is False
 
     panel.widget.deleteLater()
     app.processEvents()
@@ -52,4 +51,28 @@ def test_ai_panel_syncs_provider_model() -> None:
     assert panel.model.text().startswith("claude")
 
     panel.widget.deleteLater()
+    app.processEvents()
+
+
+def test_sidebar_uses_pages_instead_of_single_dense_column() -> None:
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    widgets = pytest.importorskip("PySide6.QtWidgets")
+
+    from desktop.ui.sidebar import ControlSidebar
+    from rtda.capture.interface import CaptureConfig
+
+    app = widgets.QApplication.instance() or widgets.QApplication([])
+    sidebar = ControlSidebar(
+        config=CaptureConfig(),
+        enable_perception_tools=True,
+        show_capture_overlay=True,
+        show_floating_control=True,
+    )
+
+    assert sidebar.pages.count() == 4
+    sidebar.set_page(3)
+    assert sidebar.pages.currentIndex() == 3
+    assert sidebar.page_buttons["settings"].isChecked() is True
+
+    sidebar.widget.deleteLater()
     app.processEvents()

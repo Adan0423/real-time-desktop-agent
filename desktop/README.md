@@ -11,7 +11,7 @@ es solo la interfaz propia para probar y controlar ese complemento:
 - `ai_bridge.py`: llamadas IA manuales fuera del event loop Qt.
 - `floating.py`: control flotante compacto en segundo plano.
 - `theme.py`: stylesheet central del dashboard.
-- `ui/`: sidebar, paneles, preview y widgets reutilizables de PySide6.
+- `ui/`: paginas Captura/Metricas/IA/Config, preview y widgets PySide6.
 - `main.py`: launcher de la app desktop.
 
 Ejecutar desde la raiz del repo:

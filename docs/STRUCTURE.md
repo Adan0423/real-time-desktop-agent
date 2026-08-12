@@ -86,9 +86,10 @@ desktop/
 |-- floating.py         # control flotante compacto
 |-- theme.py            # QSS centralizado
 `-- ui/
-    |-- sidebar.py      # rail izquierdo y tabs Captura/IA
-    |-- target_panel.py # monitor, backend, region y marco
+    |-- sidebar.py      # rail izquierdo y paginas Captura/Metricas/IA/Config
+    |-- target_panel.py # monitor, backend y region
     |-- runtime_panel.py # botones y metricas
+    |-- settings_panel.py # preferencias visuales/runtime del desktop
     |-- ai_panel.py     # prueba manual con token
     |-- panels.py       # exports compatibles
     |-- preview.py      # superficie de preview realtime

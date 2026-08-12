@@ -54,6 +54,7 @@ class CaptureDashboard:
             config=self._config,
             enable_perception_tools=enable_perception_tools,
             show_capture_overlay=show_capture_overlay,
+            show_floating_control=show_floating_control,
         )
         self.preview = PreviewPanel()
         self.preview_label = self.preview.surface
@@ -108,7 +109,7 @@ class CaptureDashboard:
             monitor_index=selected.monitor_index,
             window_title=selected.window_title,
             region=selected.region,
-            show_border=selected.show_border,
+            show_border=self.sidebar.settings.show_border(),
         )
         self._config = self._bridge.config
         self.timer.start()
@@ -150,11 +151,12 @@ class CaptureDashboard:
         self.ai_timer.start()
 
     def _connect_signals(self) -> None:
-        self.sidebar.runtime.start_button.clicked.connect(self.start)
-        self.sidebar.runtime.pause_button.clicked.connect(self.pause_or_resume)
-        self.sidebar.runtime.stop_button.clicked.connect(self.stop)
-        self.sidebar.runtime.uia_button.clicked.connect(self.inspect_uia)
-        self.sidebar.target.overlay_enabled.stateChanged.connect(self._refresh_overlay)
+        self.sidebar.actions.start_button.clicked.connect(self.start)
+        self.sidebar.actions.pause_button.clicked.connect(self.pause_or_resume)
+        self.sidebar.actions.stop_button.clicked.connect(self.stop)
+        self.sidebar.actions.uia_button.clicked.connect(self.inspect_uia)
+        self.sidebar.settings.border_enabled.stateChanged.connect(self._refresh_overlay)
+        self.sidebar.settings.floating_enabled.stateChanged.connect(self._set_floating_visible)
         self.sidebar.ai.provider.currentTextChanged.connect(self.sidebar.ai.sync_model)
         self.sidebar.ai.ask_button.clicked.connect(self.ask_ai)
         self.widget.destroyed.connect(self._shutdown)
@@ -166,7 +168,7 @@ class CaptureDashboard:
         self._refresh_overlay(throttle_s=0.5)
         change_enabled = (
             self._enable_perception_tools
-            and self.sidebar.target.change_detection_enabled.isChecked()
+            and self.sidebar.settings.detect_changes()
         )
         change = self._bridge.process_change_detection(change_enabled)
         self._update_runtime_status()
@@ -175,12 +177,12 @@ class CaptureDashboard:
             self.preview.set_frame(frame, change_result=change if change_enabled else None)
 
     def _refresh_overlay(self, *_args, throttle_s: float = 0.0) -> None:
-        self._bridge.refresh_overlay(self.sidebar.target.overlay_enabled.isChecked(), throttle_s=throttle_s)
+        self._bridge.refresh_overlay(self.sidebar.settings.show_border(), throttle_s=throttle_s)
 
     def _update_runtime_status(self) -> None:
         stats = self._bridge.metrics()
         resolution = self.sidebar.runtime.set_metrics(stats)
-        self.sidebar.runtime.set_running_state(running=self._bridge.running, paused=self._bridge.paused)
+        self.sidebar.actions.set_running_state(running=self._bridge.running, paused=self._bridge.paused)
         self.sidebar.set_status(running=self._bridge.running, paused=self._bridge.paused)
         self.preview.set_summary(
             running=self._bridge.running,
@@ -196,6 +198,12 @@ class CaptureDashboard:
             latency_ms=stats.capture_latency_ms,
             dropped=stats.buffer_dropped_frames,
         )
+
+    def _set_floating_visible(self, *_args) -> None:
+        if self.sidebar.settings.floating_enabled.isChecked():
+            self._floating.show()
+            return
+        self._floating.hide()
 
     def _poll_ai_result(self) -> None:
         if self._ai_runner.busy:

@@ -5,11 +5,11 @@ from rtda.capture.interface import CaptureStats
 from desktop.ui.widgets import MetricTile, SectionPanel, make_label
 
 
-class RuntimePanel:
-    """Runtime buttons and live metrics for the complement."""
+class ActionBar:
+    """Persistent compact runtime controls shown below every page."""
 
     def __init__(self, *, enable_perception_tools: bool) -> None:
-        from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QPushButton, QVBoxLayout
+        from PySide6.QtWidgets import QFrame, QHBoxLayout, QPushButton
 
         self.start_button = QPushButton("Iniciar")
         self.pause_button = QPushButton("Pausar")
@@ -19,13 +19,30 @@ class RuntimePanel:
         self.stop_button.setEnabled(False)
         self.uia_button.setEnabled(enable_perception_tools)
 
-        actions = QHBoxLayout()
-        actions.setContentsMargins(0, 0, 0, 0)
-        actions.setSpacing(7)
+        layout = QHBoxLayout()
+        layout.setContentsMargins(10, 8, 10, 8)
+        layout.setSpacing(6)
         for button in (self.start_button, self.pause_button, self.stop_button):
-            actions.addWidget(button)
+            layout.addWidget(button)
         if enable_perception_tools:
-            actions.addWidget(self.uia_button)
+            layout.addWidget(self.uia_button)
+
+        self.widget = QFrame()
+        self.widget.setObjectName("actionBar")
+        self.widget.setLayout(layout)
+
+    def set_running_state(self, *, running: bool, paused: bool) -> None:
+        self.start_button.setEnabled(not running)
+        self.pause_button.setEnabled(running)
+        self.stop_button.setEnabled(running)
+        self.pause_button.setText("Reanudar" if paused else "Pausar")
+
+
+class RuntimePanel:
+    """Runtime buttons and live metrics for the complement."""
+
+    def __init__(self, *, enable_perception_tools: bool) -> None:
+        from PySide6.QtWidgets import QGridLayout, QVBoxLayout
 
         self.metrics = {
             "fps": MetricTile("FPS", "0.0"),
@@ -47,18 +64,11 @@ class RuntimePanel:
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(9)
-        layout.addLayout(actions)
         layout.addLayout(metric_grid)
         if enable_perception_tools:
             layout.addWidget(self.uia_label)
 
-        self.widget = SectionPanel("Runtime", layout).widget
-
-    def set_running_state(self, *, running: bool, paused: bool) -> None:
-        self.start_button.setEnabled(not running)
-        self.pause_button.setEnabled(running)
-        self.stop_button.setEnabled(running)
-        self.pause_button.setText("Reanudar" if paused else "Pausar")
+        self.widget = SectionPanel("Metricas", layout).widget
 
     def set_metrics(self, stats: CaptureStats) -> str:
         resolution = "-"

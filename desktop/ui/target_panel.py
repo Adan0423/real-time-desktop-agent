@@ -15,7 +15,6 @@ class TargetSelection:
     monitor_index: int
     window_title: str | None
     region: Region | None
-    show_border: bool
 
 
 class TargetPanel:
@@ -25,35 +24,32 @@ class TargetPanel:
         self,
         *,
         config: CaptureConfig,
-        enable_perception_tools: bool,
-        show_capture_overlay: bool,
     ) -> None:
-        from PySide6.QtWidgets import QCheckBox, QComboBox, QGridLayout, QHBoxLayout, QLineEdit, QSpinBox
+        from PySide6.QtWidgets import QCheckBox, QComboBox, QFrame, QGridLayout, QLineEdit, QSpinBox
 
         self.monitor_combo = QComboBox()
         self.backend_combo = QComboBox()
         self.backend_combo.addItems(["dxgi", "wgc"])
         self.backend_combo.setCurrentText(config.backend)
+        for combo in (self.monitor_combo, self.backend_combo):
+            combo.setMinimumContentsLength(12)
+            combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
         self.fps_spin = QSpinBox()
         self.fps_spin.setRange(1, 240)
         self.fps_spin.setValue(config.target_fps)
         self.window_title = QLineEdit()
         self.window_title.setPlaceholderText("Titulo de ventana para WGC")
         self.region_enabled = QCheckBox("Region")
-        self.overlay_enabled = QCheckBox("Marco verde")
-        self.overlay_enabled.setChecked(show_capture_overlay)
-        self.change_detection_enabled = QCheckBox("Cambios")
-        self.change_detection_enabled.setChecked(False)
         self.left_spin = coord_spin(config.region.left if config.region else 0)
         self.top_spin = coord_spin(config.region.top if config.region else 0)
         self.right_spin = coord_spin(config.region.right if config.region else 3840)
         self.bottom_spin = coord_spin(config.region.bottom if config.region else 2160)
         self.region_enabled.setChecked(config.region is not None)
-        self.region_enabled.toggled.connect(self._set_region_controls_enabled)
+        self.region_enabled.toggled.connect(self._set_region_controls_visible)
 
         fields = QGridLayout()
         fields.setHorizontalSpacing(8)
-        fields.setVerticalSpacing(7)
+        fields.setVerticalSpacing(8)
         for row, (label, widget) in enumerate(
             (
                 ("Monitor", self.monitor_combo),
@@ -64,16 +60,7 @@ class TargetPanel:
         ):
             fields.addWidget(make_label(label, "fieldLabel"), row, 0)
             fields.addWidget(widget, row, 1)
-
-        toggles = QHBoxLayout()
-        toggles.setContentsMargins(0, 0, 0, 0)
-        toggles.setSpacing(10)
-        toggles.addWidget(self.region_enabled)
-        toggles.addWidget(self.overlay_enabled)
-        if enable_perception_tools:
-            toggles.addWidget(self.change_detection_enabled)
-        toggles.addStretch(1)
-        fields.addLayout(toggles, 4, 0, 1, 2)
+        fields.addWidget(self.region_enabled, 4, 1)
 
         region = QGridLayout()
         region.setHorizontalSpacing(6)
@@ -88,10 +75,13 @@ class TargetPanel:
         ):
             region.addWidget(make_label(label, "fieldLabel"), idx // 2, (idx % 2) * 2)
             region.addWidget(widget, idx // 2, (idx % 2) * 2 + 1)
-        fields.addLayout(region, 5, 0, 1, 2)
+        self._region_container = QFrame()
+        self._region_container.setObjectName("inlineRegion")
+        self._region_container.setLayout(region)
+        fields.addWidget(self._region_container, 5, 0, 1, 2)
 
         self.widget = SectionPanel("Objetivo", fields).widget
-        self._set_region_controls_enabled(self.region_enabled.isChecked())
+        self._set_region_controls_visible(self.region_enabled.isChecked())
 
     def set_monitors(self, monitors: list[MonitorInfo]) -> None:
         self.monitor_combo.clear()
@@ -120,9 +110,9 @@ class TargetPanel:
             monitor_index=max(0, self.monitor_combo.currentIndex()),
             window_title=window_title,
             region=region,
-            show_border=self.overlay_enabled.isChecked(),
         )
 
-    def _set_region_controls_enabled(self, enabled: bool) -> None:
+    def _set_region_controls_visible(self, enabled: bool) -> None:
+        self._region_container.setVisible(enabled)
         for widget in (self.left_spin, self.top_spin, self.right_spin, self.bottom_spin):
             widget.setEnabled(enabled)

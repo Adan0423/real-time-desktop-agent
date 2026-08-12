@@ -20,6 +20,15 @@ QFrame#sectionPanel {
     border: 1px solid #283442;
     border-radius: 7px;
 }
+QFrame#actionBar {
+    background: #0f151d;
+    border: 1px solid #273240;
+    border-radius: 7px;
+}
+QFrame#inlineRegion {
+    background: transparent;
+    border: 0;
+}
 QFrame#metricTile {
     background: #0d1218;
     border: 1px solid #273240;
@@ -27,7 +36,7 @@ QFrame#metricTile {
 }
 QLabel#appTitle {
     color: #ffffff;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 800;
 }
 QLabel#sectionTitle,
@@ -67,19 +76,20 @@ QLabel#previewSurface {
     border: 1px solid #2a3543;
     border-radius: 7px;
 }
-QTabWidget::pane {
-    border: 0;
-}
-QTabBar::tab {
+QPushButton#navButton {
     background: #11161d;
     color: #9eaaba;
     border: 1px solid #283442;
     border-radius: 6px;
-    padding: 6px 14px;
-    margin-right: 6px;
+    min-height: 24px;
+    padding: 4px 8px;
 }
-QTabBar::tab:selected {
+QPushButton#navButton:checked {
     color: #ffffff;
+    border-color: #39d98a;
+    background: #13211c;
+}
+QPushButton#navButton:hover {
     border-color: #39d98a;
 }
 QPushButton {
