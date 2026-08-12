@@ -9,8 +9,16 @@ from rtda.models.actions import ActionResult, ActionStatus, ActionType, Resolved
 
 @dataclass(slots=True)
 class PyAutoGUIActionExecutor(ActionExecutor):
+    """Executes desktop actions via PyAutoGUI.
+
+    Args:
+        dry_run: If True (default), no real mouse/keyboard events are sent.
+                 Set to False to execute real actions on the desktop.
+        pause_s: Seconds to pause between PyAutoGUI calls (anti-jitter).
+    """
+
     dry_run: bool = True
-    pause_s: float = 0.02
+    pause_s: float = 0.05
 
     def __post_init__(self) -> None:
         if self.pause_s < 0:
@@ -55,26 +63,48 @@ class PyAutoGUIActionExecutor(ActionExecutor):
             metadata={"x": action.x, "y": action.y, "resolved_by": action.resolved_by},
         )
 
-    def _execute_pyautogui(self, pyautogui, action: ResolvedAction) -> None:
+    def _execute_pyautogui(self, pyautogui, action: ResolvedAction) -> None:  # noqa: ANN001
         command = action.command
+
         if command.action in (ActionType.MOVE, ActionType.HOVER):
             self._require_point(action)
             pyautogui.moveTo(action.x, action.y)
+
         elif command.action == ActionType.CLICK:
             self._require_point(action)
             pyautogui.click(action.x, action.y)
+
         elif command.action == ActionType.TYPE:
             if action.x is not None and action.y is not None:
                 pyautogui.click(action.x, action.y)
-            pyautogui.write(command.value or "")
+            # Use typewrite for printable ASCII; write handles unicode too
+            pyautogui.write(command.value or "", interval=0.02)
+
         elif command.action == ActionType.PRESS:
-            pyautogui.press(command.value or (command.keys[0] if command.keys else "enter"))
+            key = command.value or (command.keys[0] if command.keys else "enter")
+            pyautogui.press(key)
+
         elif command.action == ActionType.HOTKEY:
             if not command.keys:
                 raise ValueError("hotkey requires keys")
             pyautogui.hotkey(*command.keys)
+
         elif command.action == ActionType.SCROLL:
-            pyautogui.scroll(command.amount or 0)
+            amount = command.amount or 0
+            if action.x is not None and action.y is not None:
+                pyautogui.scroll(amount, x=action.x, y=action.y)
+            else:
+                pyautogui.scroll(amount)
+
+        elif command.action == ActionType.NAVIGATE:
+            # Open URL or file with the system default handler
+            import subprocess
+            target = command.value or command.target or ""
+            if target:
+                subprocess.Popen(["cmd", "/c", "start", "", target], shell=False)
+            else:
+                raise ValueError("navigate requires a value or target")
+
         else:
             raise ValueError(f"unsupported pyautogui action: {command.action}")
 
