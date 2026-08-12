@@ -24,7 +24,7 @@ RTDA esta pensado para desarrolladores, investigadores y builders que quieren cr
 | Backend / Core | ![Python](https://img.shields.io/badge/Python-3.12--3.14-3776AB?logo=python&logoColor=white) `setuptools`, arquitectura `src/` |
 | Computer Vision | ![OpenCV](https://img.shields.io/badge/OpenCV-change%20detection-5C3EE8?logo=opencv&logoColor=white) ![NumPy](https://img.shields.io/badge/NumPy-frames-013243?logo=numpy&logoColor=white) ![ONNX](https://img.shields.io/badge/ONNX%20Runtime-adapter-005CED) |
 | Captura Windows | `windows-capture`, DXGI Desktop Duplication, Windows Graphics Capture, Win32 monitor/window APIs |
-| IA / Agentes | Cliente OpenAI/Anthropic por HTTP, agente rule-based, MCP server |
+| IA / Agentes | Cliente multi-proveedor por HTTP, agente rule-based, MCP server |
 | OCR | PaddleOCR/PaddlePaddle como extra opcional |
 | Base de datos | No aplica actualmente |
 | Infraestructura | Local-first; sin Docker ni despliegue remoto obligatorio |
@@ -44,7 +44,7 @@ flowchart LR
     Desktop --> Floating["Control flotante topmost"]
     Desktop --> Overlay["Marco verde de captura"]
     Desktop --> AIClient["Panel IA con token"]
-    AIClient --> Providers["OpenAI / Anthropic"]
+    AIClient --> Providers["OpenAI / Anthropic / OpenRouter / Groq / TokenRouter / NVIDIA"]
     MCP --> Hosts["Claude Desktop / ChatGPT / Codex / otros hosts"]
 ```
 
@@ -58,7 +58,7 @@ flowchart LR
 - Dibuja un marco verde para saber que area esta observando RTDA.
 - Incluye un control flotante en segundo plano para ver estado e interactuar.
 - Expone herramientas MCP para funcionar como complemento de asistentes IA.
-- Permite pruebas con proveedores OpenAI/Anthropic usando token en la app.
+- Permite pruebas con proveedores IA usando token en la app: OpenAI, Anthropic, OpenRouter, Groq, TokenRouter y NVIDIA.
 - Mantiene acciones externas en modo seguro/dry-run mientras se endurece MVP.
 
 ## Instalacion y Uso
@@ -145,7 +145,11 @@ RTDA no carga `.env` automaticamente. Usa estas variables si integras los client
 | --- | --- | --- |
 | `OPENAI_API_KEY` | Token para llamadas al proveedor OpenAI desde `AIClientConfig.from_env()` | Opcional |
 | `ANTHROPIC_API_KEY` | Token para llamadas al proveedor Anthropic desde `AIClientConfig.from_env()` | Opcional |
-| `RTDA_AI_PROVIDER` | Proveedor IA por defecto: `openai` o `anthropic` | Opcional |
+| `OPENROUTER_API_KEY` | Token para OpenRouter desde el panel IA o `AIClientConfig.from_env()` | Opcional |
+| `GROQ_API_KEY` | Token para Groq desde el panel IA o `AIClientConfig.from_env()` | Opcional |
+| `TOKENROUTER_API_KEY` | Token para TokenRouter desde el panel IA o `AIClientConfig.from_env()` | Opcional |
+| `NVIDIA_API_KEY` | Token para NVIDIA NIM desde el panel IA o `AIClientConfig.from_env()` | Opcional |
+| `RTDA_AI_PROVIDER` | Proveedor IA por defecto: `openai`, `anthropic`, `openrouter`, `groq`, `tokenrouter` o `nvidia` | Opcional |
 | `RTDA_BACKEND` | Default documentado para captura (`dxgi`/`wgc`); usa `--backend` en CLI | Opcional |
 | `RTDA_TARGET_FPS` | Default documentado de FPS; usa `--target-fps` en CLI | Opcional |
 | `RTDA_MONITOR_INDEX` | Default documentado de monitor; usa `--monitor-index` en CLI | Opcional |
@@ -165,7 +169,7 @@ RTDA esta disenado para operar local-first y en tiempo real:
 ```text
 real-time-desktop-agent/
 |-- src/rtda/
-|   |-- ai/              # Cliente OpenAI/Anthropic usado por la app propia
+|   |-- ai/              # Cliente multi-proveedor usado por la app propia
 |   |-- complement/      # API publica del complemento IA RTDA
 |   |-- app/             # CLI launchers y shims de compatibilidad
 |   |-- extension/       # Alias compatible hacia complement/

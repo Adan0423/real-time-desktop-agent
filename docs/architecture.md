@@ -43,7 +43,7 @@ flowchart TD
     Planner --> Guard["ActionGuard"]
     Guard --> Executor["PyAutoGUI / Dry Run"]
     MCP --> Hosts["Claude Desktop / ChatGPT / Codex / otros hosts"]
-    AI --> Providers["OpenAI / Anthropic"]
+    AI --> Providers["OpenAI / Anthropic / OpenRouter / Groq / TokenRouter / NVIDIA"]
 ```
 
 ## Capas
@@ -78,7 +78,7 @@ flowchart TD
 | Vision local | ONNX Runtime adapter | Prepara una ruta para modelos locales sin fijar arquitectura aun |
 | Acciones | PyAutoGUI detras de `ActionGuard` | Mantiene una frontera de seguridad y permite dry-run |
 | Integracion externa | MCP | Protocolo estandar para que hosts IA consuman tools locales |
-| IA app propia | HTTP stdlib hacia OpenAI/Anthropic | Evita SDKs extra y facilita pruebas con transporte fake |
+| IA app propia | HTTP stdlib hacia proveedores IA | Evita SDKs extra y facilita pruebas con transporte fake |
 
 ## Flujo de Captura
 
@@ -138,4 +138,4 @@ sequenceDiagram
 - El OCR real depende de una version de Python compatible con PaddlePaddle.
 - El MCPB tiene manifiesto validado y paquete local generado; falta prueba
   manual de instalacion en Claude Desktop.
-- La vision multimodal hacia OpenAI/Anthropic todavia no envia imagen/frame.
+- La vision multimodal hacia proveedores IA todavia no envia imagen/frame.

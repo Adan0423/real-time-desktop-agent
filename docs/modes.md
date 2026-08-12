@@ -26,8 +26,9 @@ Incluye:
 - panel IA con proveedor, modelo, token y prompt.
 
 El token de IA se mantiene en memoria. Tambien puede resolverse desde variables
-de entorno si existen (`OPENAI_API_KEY` o `ANTHROPIC_API_KEY`), pero RTDA no
-escribe secretos en el repositorio.
+de entorno si existen (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+`OPENROUTER_API_KEY`, `GROQ_API_KEY`, `TOKENROUTER_API_KEY` o
+`NVIDIA_API_KEY`), pero RTDA no escribe secretos en el repositorio.
 
 Opciones utiles:
 

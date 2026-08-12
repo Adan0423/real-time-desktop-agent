@@ -55,6 +55,6 @@ Ultima actualizacion: 2026-08-11
 ## Preguntas Abiertas
 
 - El MVP debe permitir acciones reales o solo observacion + dry-run?
-- El primer proveedor IA productivo sera OpenAI, Anthropic o ambos?
+- Que proveedores/modelos gratis deben quedar como presets recomendados y con que rate-limit esperado?
 - El paquete MCPB debe incluir dependencias completas o usar runtime `uv`?
 - El contacto publico sera correo personal, GitHub Issues o ambos?

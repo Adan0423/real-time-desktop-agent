@@ -39,7 +39,7 @@ multimodales a proveedores externos.
 | MCPB manifest Claude | Implementado | Manifest validado con `mcpb validate` |
 | MCPB paquete local | Parcial | `.mcpb` generado; falta prueba manual en Claude Desktop |
 | Plugin local ChatGPT/Codex | Implementado | `.codex-plugin/plugin.json`, `.mcp.json`, marketplace repo |
-| Panel IA con token | Parcial | OpenAI/Anthropic texto; falta imagen/frame |
+| Panel IA con token | Parcial | Texto multi-proveedor; falta imagen/frame |
 | Base de datos | No implementado | No hay modulo DB |
 | CI/CD | No implementado | No hay workflows `.github` |
 

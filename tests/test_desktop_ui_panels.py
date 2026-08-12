@@ -40,6 +40,7 @@ def test_ai_panel_syncs_provider_model() -> None:
     widgets = pytest.importorskip("PySide6.QtWidgets")
 
     from desktop.ui.panels import AiPanel
+    from rtda.ai.client import AI_PROVIDERS, default_model
 
     app = widgets.QApplication.instance() or widgets.QApplication([])
     panel = AiPanel()
@@ -47,6 +48,11 @@ def test_ai_panel_syncs_provider_model() -> None:
     panel.sync_model("anthropic")
 
     assert panel.model.text().startswith("claude")
+    assert panel.provider.count() == len(AI_PROVIDERS)
+
+    panel.sync_model("openrouter")
+
+    assert panel.model.text() == default_model("openrouter")
 
     panel.widget.deleteLater()
     app.processEvents()

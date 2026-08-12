@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from rtda.ai.client import AIClientConfig, default_model
+from rtda.ai.client import AI_PROVIDERS, AIClientConfig, default_model
 
 from desktop.ui.widgets import make_label
 
@@ -12,7 +12,7 @@ class AiPanel:
         from PySide6.QtWidgets import QComboBox, QGridLayout, QLineEdit, QPushButton, QTextEdit, QVBoxLayout, QWidget
 
         self.provider = QComboBox()
-        self.provider.addItems(["openai", "anthropic"])
+        self.provider.addItems(list(AI_PROVIDERS))
         self.model = QLineEdit(default_model("openai"))
         self.token = QLineEdit()
         self.token.setEchoMode(QLineEdit.EchoMode.Password)
@@ -48,8 +48,7 @@ class AiPanel:
         self.widget.setLayout(layout)
 
     def sync_model(self, provider: str) -> None:
-        if provider in ("openai", "anthropic"):
-            self.model.setText(default_model(provider))
+        self.model.setText(default_model(provider))
 
     def request_config(self) -> AIClientConfig:
         token = self.token.text().strip() or None
