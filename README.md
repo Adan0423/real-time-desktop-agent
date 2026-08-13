@@ -1,11 +1,11 @@
 # 🌟 Real-Time Desktop Agent (RTDA) v3.0
 
-[![Release](https://img.shields.io/github/v/release/Adan0423/real-time-desktop-agent?include_prereleases&color=7c3aed&label=release)](https://github.com/Adan0423/real-time-desktop-agent/releases/tag/v3.0.0-beta)
+[![Release](https://img.shields.io/github/v/release/Adan0423/real-time-desktop-agent?include_prereleases&color=7c3aed&label=release)](https://github.com/Adan0423/real-time-desktop-agent/releases/tag/v3.0.1-beta)
 ![Build](https://img.shields.io/badge/build-local%20pytest-brightgreen)
 ![Tests](https://img.shields.io/badge/tests-80%2F80%20passing-brightgreen)
 ![Benchmark](https://img.shields.io/badge/benchmark-100%2F100-success)
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Version](https://img.shields.io/badge/version-3.0.0--beta-informational)
+![Version](https://img.shields.io/badge/version-3.0.1--beta-informational)
 ![Python](https://img.shields.io/badge/python-3.12--3.14-3776AB?logo=python&logoColor=white)
 ![Windows](https://img.shields.io/badge/platform-Windows%2011-0078D4?logo=windows&logoColor=white)
 ![MCP](https://img.shields.io/badge/MCP-compatible-6f42c1)
@@ -87,8 +87,8 @@
 
 | Método | Cliente Destino | Tipo de Instalación | Instrucciones Rápidas |
 |---|---|---|---|
-| 🟣 **Método A** | **Claude Desktop** | **1-Click MCP Bundle (`.mcpb`)** | Descargar [`v3.0.0-beta Release`](https://github.com/Adan0423/real-time-desktop-agent/releases/tag/v3.0.0-beta) e instalar `.mcpb` en Claude. |
-| 🔵 **Método B** | **Cursor / VSCode / Dev** | **`pip` Direct Wheel Install** | `pip install https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.0-beta/real_time_desktop_agent-3.0.0b-py3-none-any.whl` |
+| 🟣 **Método A** | **Claude Desktop** | **1-Click MCP Bundle (`.mcpb`)** | Descargar [`v3.0.1-beta Release`](https://github.com/Adan0423/real-time-desktop-agent/releases/tag/v3.0.1-beta) e instalar `.mcpb` en Claude. |
+| 🔵 **Método B** | **Cursor / VSCode / Dev** | **`pip` Direct Wheel Install** | `pip install https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.1-beta/real_time_desktop_agent-3.0.1b0-py3-none-any.whl` |
 | 🔴 **Método C** | **ChatGPT / API / WebSocket** | **Servidor SSE / WebSocket** | `python -m rtda.mcp.server --transport sse` |
 
 ---

@@ -19,7 +19,7 @@
                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                    DIST ARCHIVE (.mcpb Bundle)                          │
-│          dist/real-time-desktop-agent-3.0.0-beta.1.mcpb (243 KB)             │
+│          dist/real-time-desktop-agent-3.0.0-beta.mcpb (243 KB)             │
 │   Contiene todo el runtime, manifest.json y dependencias empaquetadas   │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -56,56 +56,99 @@ Este es el método **más rápido y recomendado** para usuarios finales de Claud
 #### Pasos:
 1. **Obtener el archivo `.mcpb`**:
    Descarga el paquete distribuible desde:
-   `dist/real-time-desktop-agent-3.0.0-beta.1.mcpb`
+   `dist/real-time-desktop-agent-3.0.0-beta.mcpb`
 
 2. **Instalar en Claude Desktop**:
    - Abre **Claude Desktop**.
    - Ve a **Settings** ⚙️ ➔ **Developer** ➔ **Add Extension**.
-   - Selecciona el archivo `real-time-desktop-agent-3.0.0-beta.1.mcpb` (o simplemente arrástralo sobre la ventana de Claude Desktop).
+   - Selecciona el archivo `real-time-desktop-agent-3.0.0-beta.mcpb` (o simplemente arrástralo sobre la ventana de Claude Desktop).
 
 3. **¡Listo!**:
    Claude Desktop instalará automáticamente las herramientas y podrás pedirle a Claude que interactúe con tu escritorio de Windows.
 
 ---
 
-### 🔵 Método B: Desarrolladores / Cursor / VSCode / Windsurf (`pip` / `uv`)
+### 🔵 Método B: Clientes con Configuración JSON (Cursor, VSCode, Roo Code, Windsurf)
 
-Ideal para desarrolladores que desean instalar el paquete ejecutable directamente desde GitHub Releases o clonar el código fuente.
+Ideal para conectar aplicaciones que se integran mediante la especificación estándar JSON de `mcpServers`.
 
-#### Opción 1: Instalación directa desde GitHub Releases (Sin clonar)
-Cualquier desarrollador puede instalar el paquete `.whl` directamente desde el Release de GitHub:
+#### 📌 Opción 1: Instalación previa con `pip` (Modo Global Recomendado)
 
-```bash
-pip install https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.0-beta.1/real_time_desktop_agent-3.0.0b1-py3-none-any.whl
-```
+1. **Instalar el paquete en tu entorno Python local:**
+   ```powershell
+   pip install https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.0-beta.1/real_time_desktop_agent-3.0.0b1-py3-none-any.whl
+   ```
 
-#### Opción 2: Instalación desde código fuente
-```powershell
-git clone https://github.com/Adan0423/real-time-desktop-agent.git
-cd real-time-desktop-agent
-
-# Usando uv (Recomendado):
-uv pip install -e .
-
-# O usando pip tradicional:
-pip install -e .
-```
-
-2. **Configurar el cliente MCP (`claude_desktop_config.json` o configuración de Cursor/VSCode)**:
-   Añade el servidor MCP a la configuración de tu cliente:
+2. **Agregar la configuración JSON al cliente MCP:**
    ```json
    {
      "mcpServers": {
        "real-time-desktop-agent": {
-         "command": "python",
-         "args": ["-m", "rtda.mcp.server", "--transport", "stdio"]
+         "command": "rtda-mcp",
+         "args": [
+           "--transport",
+           "stdio"
+         ]
+       }
+     }
+   }
+   ```
+
+---
+
+#### 🚀 Opción 2: Auto-instalación con `uvx` (Cero instalación previa)
+
+Si tu cliente soporta `uv` / `uvx`, no necesitas instalar previamente el paquete. `uvx` descargará y ejecutará RTDA de forma temporal e impulsada por demandas:
+
+```json
+{
+  "mcpServers": {
+    "real-time-desktop-agent": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.0-beta.1/real_time_desktop_agent-3.0.0b1-py3-none-any.whl",
+        "rtda-mcp",
+        "--transport",
+        "stdio"
+      ]
+    }
+  }
+}
+```
+
+---
+
+#### 📂 Opción 3: Repositorio clonado localmente (Código fuente)
+
+1. **Clonar e instalar dependencias:**
+   ```powershell
+   git clone https://github.com/Adan0423/real-time-desktop-agent.git
+   cd real-time-desktop-agent
+   uv pip install -e ".[capture,gui,dev,service]"
+   ```
+
+2. **Agregar el JSON apuntando a la ruta de tu entorno virtual:**
+   > *Nota: Sustituye `C:\Path\To\real-time-desktop-agent` por la ruta real donde clonaste el proyecto en tu sistema.*
+
+   ```json
+   {
+     "mcpServers": {
+       "real-time-desktop-agent": {
+         "command": "C:\\Path\\To\\real-time-desktop-agent\\.venv\\Scripts\\python.exe",
+         "args": [
+           "-m",
+           "rtda.mcp.server",
+           "--transport",
+           "stdio"
+         ]
        }
      }
    }
    ```
 
 3. **Verificar instalación**:
-   Ejecuta en terminal para comprobar que las herramientas se listan correctamente:
+   Ejecuta en tu terminal para comprobar que las herramientas se listan correctamente:
    ```powershell
    python -m rtda.mcp.server --transport stdio
    ```

@@ -2,7 +2,7 @@
   "manifest_version": "0.4",
   "name": "real-time-desktop-agent",
   "display_name": "RTDA - Real-Time Desktop Agent",
-  "version": "3.0.0-beta",
+  "version": "3.0.1-beta",
   "icon": "icon.png",
   "description": "Local Windows desktop capture and automation tools exposed through MCP.",
   "long_description": "RTDA exposes a local MCP server for Windows desktop capture diagnostics, UI Automation inspection, action planning, risk classification, and dry-run desktop actions. It is designed for private local use with Claude Desktop and other MCP-compatible hosts.",
