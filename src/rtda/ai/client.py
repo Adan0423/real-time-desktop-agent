@@ -46,7 +46,7 @@ class AIClientError(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class AIClientConfig:
-    provider: AIProvider = "openai"
+    provider: AIProvider = "groq"
     api_key: str | None = None
     model: str | None = None
     timeout_s: float = 30.0
@@ -61,7 +61,7 @@ class AIClientConfig:
 
     @classmethod
     def from_env(cls, provider: AIProvider | None = None) -> "AIClientConfig":
-        selected_provider = normalize_provider(provider or os.getenv("RTDA_AI_PROVIDER", "openai"))
+        selected_provider = normalize_provider(provider or os.getenv("RTDA_AI_PROVIDER", "groq"))
         api_key = os.getenv(env_var_for_provider(selected_provider))
         return cls(
             provider=selected_provider,

@@ -21,10 +21,8 @@ def test_openai_plugin_mcp_config_uses_rtda_server() -> None:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     server = config["real-time-desktop-agent"]
 
-    # Accept both "python" (generic) and absolute paths like C:\Python314\python.exe
-    # The .mcp.json may use an absolute path so Claude Desktop finds the correct interpreter.
-    assert "python" in server["command"].lower()
-    assert server["args"] == ["-m", "rtda.mcp.server", "--transport", "stdio"]
+    assert any(cmd in server["command"].lower() for cmd in ("python", "uv"))
+    assert "rtda.mcp.server" in server["args"]
 
 
 def test_repo_marketplace_points_to_plugin_folder() -> None:

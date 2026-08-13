@@ -15,20 +15,24 @@ class AiPanel:
         self.provider = QComboBox()
         self.provider.addItems(list(AI_PROVIDERS))
         
-        self.model = QLineEdit(default_model("openai"))
+        self.model = QLineEdit(default_model("groq"))
         self.token = QLineEdit()
         self.token.setEchoMode(QLineEdit.EchoMode.Password)
         
         self.status_label = QLabel()
         self.status_label.setWordWrap(True)
 
-        # Select first provider with configured API key in .env if available
-        first_configured = next((p for p in AI_PROVIDERS if os.environ.get(env_var_for_provider(p))), None)
-        if first_configured:
-            idx = self.provider.findText(first_configured)
-            if idx >= 0:
-                self.provider.setCurrentIndex(idx)
-                self.model.setText(default_model(first_configured))
+        # Select RTDA_AI_PROVIDER or first provider with configured API key in .env
+        env_pref = os.environ.get("RTDA_AI_PROVIDER", "groq")
+        if os.environ.get(env_var_for_provider(env_pref)):  # type: ignore[arg-type]
+            first_configured = env_pref
+        else:
+            first_configured = next((p for p in AI_PROVIDERS if os.environ.get(env_var_for_provider(p))), "groq")
+        
+        idx = self.provider.findText(first_configured)
+        if idx >= 0:
+            self.provider.setCurrentIndex(idx)
+            self.model.setText(default_model(first_configured))
 
         self._sync_token_from_env(self.provider.currentText())
         self.provider.currentTextChanged.connect(self.sync_model)
