@@ -1,6 +1,6 @@
 # 🌟 MASTER PLAN v3.0 — REAL-TIME DESKTOP AGENT
 
-> **Documento Maestro de Arquitectura y Diseño Técnico**
+> **Documento Maestro de Arquitectura, Fases y Diseño Técnico**  
 > **Estado**: v3.0 (Versión activa y verificada) | **Tests**: 80/80 pasando (100%)
 
 ---
@@ -14,6 +14,8 @@
 ```text
   SEE CONTINUOUSLY  ──►  ACT IMMEDIATELY  ──►  REASON ONLY WHEN NECESSARY
 ```
+
+**Principio Fundamental:** `FAST PERCEPTION + SLOW REASONING`
 
 ---
 
@@ -70,7 +72,24 @@ Mantiene viva la sesión de control entre la IA y Windows durante toda la jornad
 
 ---
 
-## 📊 4. Estado de Implementación de Componentes
+## 🛠️ 4. Stack Tecnológico
+
+| Área | Tecnología | Propósito |
+|---|---|---|
+| Captura | `windows-capture` (DXGI/WGC) | Stream de frames de baja latencia (60 FPS) |
+| UI Automation | `uiautomation` / COM nativo | Árbol de elementos de Windows |
+| Computer Vision | `opencv-python`, `numpy` | Detección de cambios y ROI |
+| OCR | `paddleocr` (opcional) | Lectura de texto en pantalla |
+| Vision AI | ONNX Runtime / DirectML | Modelos locales de visión |
+| Acciones | `Win32SendInputBackend` / `pyautogui` | Emulación de mouse y teclado de ultra-baja latencia |
+| IA / Agentes | MCP + FastMCP | Interfaz estandarizada con Claude Desktop y hosts MCP |
+| Datos | `pydantic` | Modelos tipados y validados |
+| UI App | `PySide6` | Dashboard de escritorio |
+| Tests | `pytest` | Suite de pruebas automatizadas |
+
+---
+
+## 📊 5. Estado de Implementación por Módulo
 
 | Componente | Módulo | Estado | Tests |
 |---|---|---|---|
@@ -86,3 +105,80 @@ Mantiene viva la sesión de control entre la IA y Windows durante toda la jornad
 | **Agent Executor** | `src/rtda/agent/executor.py` | ✅ Completado | `test_agent.py` |
 | **Benchmark Framework**| `tests/benchmark/` | ✅ 25/25 (100%) | `test_benchmark.py` |
 | **MCP Server (MCPB)** | `src/rtda/mcp/server.py` | ✅ Completado | `test_mcp_server.py` |
+
+---
+
+## 🔄 6. Fases de Desarrollo
+
+### ✅ FASE 1 — Capture Engine
+- DXGI (~5ms latencia, 60 FPS estables) y WGC (captura de ventanas específicas).
+- Frame buffer configurable en memoria (`target_fps`, `max_buffer_size`, `region`, `monitor_index`).
+
+### ✅ FASE 2 — Change Detection
+- Detección de diferencias con OpenCV (`FrameChangeProcessor`).
+- Muestreo de latencia y ratio de modificación de pantalla (`ProcessingMetrics`).
+
+### ✅ FASE 3 — Windows UI Automation
+- Lectura estructurada del árbol UIA (`WindowsUIAutomationInspector`).
+- Normalización a `PerceptionElement` para el agente.
+
+### ✅ FASE 4 — OCR (Opcional)
+- Extracción de texto visual para elementos no expuestos por UIA (`paddleocr`).
+
+### ✅ FASE 5 — Action Engine
+- Ejecución con `Win32SendInputBackend` y guardias de seguridad (`ActionGuard`).
+- Soporte para `dry_run=True` por defecto para prevenir ejecuciones accidentales.
+
+### ✅ FASE 6 — Safety
+- Clasificación de riesgo de acciones (SAFE, MODERATE, DANGEROUS) con `ActionPolicy` y `ConfirmationManager`.
+
+### ✅ FASE 7 — Agent Loop
+- Ciclo completo `OBSERVE → PLAN → ACT → VERIFY → RECOVER`.
+- Detección de ventana activa con ctypes, histórico de acciones y recuperación automática (`RecoveryManager`).
+
+### ✅ FASE 8 — MCP Server & Complemento
+- Exposición de herramientas MCP estandarizadas para Claude Desktop y clientes MCP.
+
+---
+
+## 📐 7. Reglas de Desarrollo
+
+### 🚫 Nunca Hacer
+- Construir todo en un único archivo.
+- Usar screenshots guardados en disco para el loop de ejecución.
+- Enviar cada frame a una API externa de IA.
+- Usar IA para detectar elementos que UIA puede leer directamente.
+- Ejecutar acciones destructivas sin validación previa.
+- Meter sleeps arbitrarios sin medir previamente latencias.
+- Ocultar errores o ignorar métricas de telemetría.
+
+### ✅ Siempre Hacer
+- Medir latencia por fase (`observe_ms`, `plan_ms`, `execute_ms`, `verify_ms`).
+- Verificar el estado post-acción antes de asumir éxito.
+- Exponer `dry_run` antes de ejecutar en entornos reales.
+- Documentar decisiones de diseño y testear cada módulo de forma aislada.
+
+---
+
+## ⏱️ 8. Métricas Objetivo y SLOs
+
+```text
+Ciclo completo observe→act:   < 500ms
+UIA snapshot latencia:        < 200ms
+Captura DXGI latencia:        < 10ms
+Resolución de target:         < 50ms
+Verificación post-acción:     < 400ms (incluye wait_ms)
+```
+
+---
+
+## 🗺️ 9. Roadmap de Mejoras Pendientes
+
+| Prioridad | Mejora | Descripción |
+|---|---|---|
+| 🔴 P1 | Telemetría extendida en `AgentTaskResult` | Registro exhaustivo de tiempos por micro-etapa |
+| 🟡 P2 | Búsqueda UIA Live Dinámica | Consultar UIA en vivo si el elemento objetivo no está cacheado |
+| 🟡 P2 | Integración OCR en Pipeline de Percepción | Fallback automático a OCR cuando UIA falla |
+| 🟡 P2 | Detección de Diálogos / Popups | Captura preventiva de ventanas emergentes o de error |
+| 🟠 P3 | Vision AI Local (ONNX) | Clasificación de elementos gráficos mediante redes locales |
+| 🟠 P3 | Memoria Persistente entre Sesiones | Retención de mapa de UI entre reinicios del agente |

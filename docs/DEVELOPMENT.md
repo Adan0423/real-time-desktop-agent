@@ -26,7 +26,13 @@ uv pip install -e ".[capture,gui,dev,service]"
 
 El proyecto cuenta con una suite completa de pruebas unitarias e integración en `tests/`:
 
-### Ejecutar todas las pruebas unitarias (85 tests):
+### Estrategia de Pruebas Agrupadas por Dominio:
+- `tests/test_capture.py`: Captura DXGI/WGC, FrameBuffer, Memoria Compartida.
+- `tests/test_perception.py`: Windows UI Automation, Visión OpenCV, ROIProcessor, OCR.
+- `tests/test_engine.py`: Win32 SendInput, Agente Autónomo, DesktopSession, Bus de Eventos, MCP Server, REST/WS Gateway.
+- `tests/test_desktop_ui.py`: Interfaz PySide6, Dashboard, Panel IA, Overlays y Control Flotante.
+- `tests/test_benchmark.py`: Suite de Benchmark automatizada (25 casos de uso).
+
 ```powershell
 python -m pytest tests/ -v
 ```

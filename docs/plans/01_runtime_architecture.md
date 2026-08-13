@@ -1,4 +1,4 @@
-# ⚡ Plan de Mejora v2 — RTDA Desktop Agent Runtime Architecture
+# ⚡ RTDA Desktop Agent Runtime Architecture
 
 > [!IMPORTANT]
 > **Principio de Diseño**: RTDA no debe ser *"un bot basado en screenshots"*. Debe ser una **capa de capacidades de escritorio en tiempo real** que cualquier IA (Claude, ChatGPT, agente local, voz) pueda utilizar como un *Desktop AgentOS*.
@@ -42,7 +42,7 @@ AI Action Request ──► RTDA Action Engine ──► Target Resolver (UIA) �
 
 ---
 
-## 💡 3. Las 4 Innovaciones Arquitectónicas
+## 💡 3. Innovaciones Arquitectónicas
 
 ### 1. Separación de FPS de Captura vs Percepción
 No se ejecuta OCR o Vision AI 60 veces por segundo:
@@ -66,7 +66,7 @@ No se ejecuta OCR o Vision AI 60 veces por segundo:
 ### 3. Controlador de Input Nativo Always-Ready (`Win32SendInputBackend`)
 Reemplaza la reinicialización constante de bibliotecas de mouse por un driver en memoria basado en la API nativa de Windows `SendInput`:
 - Latencia de ejecución: **< 20 ms**
-- Soporte para clicks, movimiento, hotkeys, scroll y unicode typing.
+- Soporte para clicks, movimiento, hotkeys, scroll y escritura unicode.
 
 ### 4. Sesión Persistente (`DesktopSession`)
 La clase `DesktopSession` mantiene viva la conexión entre la IA y la computadora durante toda la jornada de trabajo (minutos u horas) sin perder contexto.

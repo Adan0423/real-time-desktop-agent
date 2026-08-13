@@ -244,7 +244,7 @@ class FakeUIAInspector(UIAutomationInspector):
         return UIASnapshot(timestamp=1.0, latency_ms=0.5, elements=(elem,))
 
 
-class FakeRapidOCR:
+class FakePipelineRapidOCR:
     def __call__(self, image):
         return [[[[100, 100], [200, 100], [200, 130], [100, 130]], "Cancel", 0.90]], None
 
@@ -255,7 +255,7 @@ def test_high_precision_pipeline_merges_uia_and_ocr() -> None:
 
     pipeline = HighPrecisionPerceptionPipeline(
         uia_inspector=FakeUIAInspector(),
-        ocr_engine=RapidOCREngine(ocr_client=FakeRapidOCR()),
+        ocr_engine=RapidOCREngine(ocr_client=FakePipelineRapidOCR()),
     )
 
     analysis = pipeline.process_frame(current_frame=frame2, previous_frame=frame1)
@@ -275,6 +275,12 @@ class FakePaddleOCR:
     def ocr(self, image, cls=False):
         assert image.shape == (20, 30, 3)
         return [[[[1, 2], [11, 2], [11, 8], [1, 8]], ("Guardar", 0.92)]]
+
+
+class FakeRapidOCR:
+    def __call__(self, image):
+        assert image.shape == (20, 30, 3)
+        return [[[[1, 2], [11, 2], [11, 8], [1, 8]], "Aceptar", 0.95]], None
 
 
 def test_paddle_ocr_engine_parses_v2_result() -> None:

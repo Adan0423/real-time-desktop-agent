@@ -98,7 +98,7 @@ def test_target_panel_returns_compact_capture_selection() -> None:
     panel.right_spin.setValue(800)
     panel.bottom_spin.setValue(600)
 
-    selection = panel.read_config()
+    selection = panel.selection()
 
     assert selection.target_fps == 75
     assert selection.region is not None
@@ -258,11 +258,18 @@ def test_processing_metrics_records_change_detection() -> None:
         region_count=2,
         changed_ratio=0.1,
     )
+    metrics.record_change_detection(
+        timestamp=1.1,
+        opencv_latency_ms=4.5,
+        changed=True,
+        region_count=2,
+        changed_ratio=0.1,
+    )
     snapshot = metrics.snapshot()
 
     assert snapshot.processing_fps > 0
     assert snapshot.opencv_latency_ms == 4.5
-    assert snapshot.frames_processed == 1
+    assert snapshot.frames_processed == 2
 
 
 # ── Extension Runtime & Plugin Metadata Tests ───────────────────────────────
