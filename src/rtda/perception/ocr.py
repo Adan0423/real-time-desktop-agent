@@ -163,3 +163,100 @@ class PaddleOCREngine(OCREngine):
         if data.ndim == 2:
             return data.copy()
         raise ValueError(f"unsupported frame shape for OCR: {data.shape}")
+
+
+class RapidOCREngine(OCREngine):
+    """RapidOCR adapter using rapidocr_onnxruntime or rapidocr. Imports ONNX OCR client gracefully."""
+
+    def __init__(self, config: OCRConfig | None = None, ocr_client: Any | None = None) -> None:
+        self.config = config or OCRConfig()
+        if ocr_client is not None:
+            self._ocr = ocr_client
+            return
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+
+            self._ocr = RapidOCR()
+        except ImportError:
+            try:
+                from rapidocr import RapidOCR
+
+                self._ocr = RapidOCR()
+            except ImportError as exc:
+                raise RuntimeError(
+                    "RapidOCR is not installed. Install via: pip install rapidocr-onnxruntime"
+                ) from exc
+
+    def analyze(self, frame: Frame) -> OCRResult:
+        started = time.perf_counter()
+        image = PaddleOCREngine._to_ocr_image(frame.data)
+        errors: list[str] = []
+        try:
+            res = self._ocr(image)
+            result = res[0] if isinstance(res, (tuple, list)) and len(res) > 0 else res
+        except Exception as exc:
+            latency_ms = (time.perf_counter() - started) * 1000.0
+            return OCRResult(
+                timestamp=time.time(),
+                latency_ms=latency_ms,
+                elements=(),
+                errors=(f"{type(exc).__name__}: {exc}",),
+            )
+
+        elements: list[PerceptionElement] = []
+        if result:
+            for item in result:
+                if not isinstance(item, (list, tuple)) or len(item) < 3:
+                    continue
+                box, text, score = item[0], item[1], float(item[2])
+                if score < self.config.min_confidence:
+                    continue
+                bbox = PaddleOCREngine._bbox_from_points(box)
+                if bbox is not None:
+                    elements.append(
+                        PerceptionElement(
+                            type="text",
+                            text=str(text),
+                            bbox=bbox,
+                            confidence=score,
+                            source="ocr_rapid",
+                        )
+                    )
+
+        latency_ms = (time.perf_counter() - started) * 1000.0
+        return OCRResult(
+            timestamp=time.time(),
+            latency_ms=latency_ms,
+            elements=tuple(elements),
+            errors=tuple(errors),
+        )
+
+
+class DummyOCREngine(OCREngine):
+    """Fallback OCR Engine when no physical OCR library is installed."""
+
+    def analyze(self, frame: Frame) -> OCRResult:
+        return OCRResult(timestamp=time.time(), latency_ms=0.0, elements=(), errors=())
+
+
+class AutoOCREngine(OCREngine):
+    """Smart OCR Engine that tries available local OCR implementations (RapidOCR -> PaddleOCR -> Fallback)."""
+
+    def __init__(self, config: OCRConfig | None = None, preferred_engine: OCREngine | None = None) -> None:
+        self.config = config or OCRConfig()
+        self._engine: OCREngine = preferred_engine if preferred_engine is not None else self._autodetect_engine()
+
+    def _autodetect_engine(self) -> OCREngine:
+        try:
+            return RapidOCREngine(config=self.config)
+        except Exception:
+            pass
+        try:
+            return PaddleOCREngine(config=self.config)
+        except Exception:
+            pass
+        return DummyOCREngine()
+
+    def analyze(self, frame: Frame) -> OCRResult:
+        return self._engine.analyze(frame)
+
