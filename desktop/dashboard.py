@@ -81,6 +81,7 @@ class CaptureDashboard:
             on_pause=self.pause_or_resume,
             on_stop=self.stop,
             on_quit=self.quit,
+            on_settings=self.open_settings,
         )
 
         self.timer = QTimer()
