@@ -14,7 +14,99 @@ from desktop.floating import RTDAFloatingControl
 from desktop.runtime_bridge import DesktopRuntimeBridge
 from desktop.ui.components import ActionBar, StatusPill
 from desktop.ui.panels import AiPanel, CapturePanel, McpPanel, MetricsPanel, SettingsPanel
-from desktop.ui.theme import apply_theme_settings
+from desktop.ui.theme import apply_theme_settings, THEME_PALETTE as T
+
+
+class CollapsiblePreview(ctk.CTkFrame):
+    """Preview frame with a collapse/expand toggle button (▲/▼)."""
+
+    def __init__(self, master, **kwargs) -> None:
+        super().__init__(
+            master,
+            fg_color=T["background_main"],
+            corner_radius=14,
+            border_color=T["border"],
+            border_width=1,
+            **kwargs,
+        )
+        self._expanded = True
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
+        # ── HEADER BAR ──
+        header = ctk.CTkFrame(self, fg_color="transparent", height=38)
+        header.grid(row=0, column=0, padx=14, pady=(10, 0), sticky="ew")
+        header.grid_columnconfigure(1, weight=1)
+
+        self.lbl_title = ctk.CTkLabel(
+            header,
+            text="\U0001f5bc\ufe0f  Vista de Pantalla en Tiempo Real",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color=T["text_primary"],
+        )
+        self.lbl_title.grid(row=0, column=0, sticky="w")
+
+        self.lbl_stats = ctk.CTkLabel(
+            header,
+            text="Listo  |  dxgi  |  0.0 FPS",
+            font=ctk.CTkFont(size=11),
+            text_color=T["accent_cyan"],
+        )
+        self.lbl_stats.grid(row=0, column=1, sticky="e")
+
+        self.btn_toggle = ctk.CTkButton(
+            header,
+            text="\u25b2",
+            width=30,
+            height=26,
+            corner_radius=8,
+            fg_color=T["background_card"],
+            hover_color="#1D3050",
+            text_color=T["accent_cyan"],
+            border_color=T["border"],
+            border_width=1,
+            font=ctk.CTkFont(size=12, weight="bold"),
+            command=self._toggle,
+        )
+        self.btn_toggle.grid(row=0, column=2, padx=(10, 0))
+
+        # ── PREVIEW SURFACE ──
+        self.surface = ctk.CTkLabel(
+            self,
+            text="\U0001f3ac  Presiona  \u25b6 Iniciar  (F5)  para previsualizar el escritorio en vivo",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color="#4B5E7A",
+            fg_color=T["background_input"],
+            corner_radius=10,
+        )
+        self.surface.grid(row=1, column=0, padx=14, pady=(6, 14), sticky="nsew")
+
+    # ── public helpers ──
+
+    def update_stats(self, text: str) -> None:
+        self.lbl_stats.configure(text=text)
+
+    def update_image(self, ctk_img) -> None:
+        self.surface.configure(image=ctk_img, text="")
+
+    def clear_image(self) -> None:
+        self.surface.configure(
+            image="",
+            text="\U0001f3ac  Presiona  \u25b6 Iniciar  (F5)  para previsualizar el escritorio en vivo",
+        )
+
+    # ── collapse / expand ──
+
+    def _toggle(self) -> None:
+        if self._expanded:
+            self.surface.grid_remove()
+            self.btn_toggle.configure(text="\u25bc")
+            self._expanded = False
+        else:
+            self.surface.grid()
+            self.btn_toggle.configure(text="\u25b2")
+            self._expanded = True
 
 
 class RTDADesktopApp(ctk.CTk):
@@ -31,10 +123,10 @@ class RTDADesktopApp(ctk.CTk):
         apply_theme_settings()
         super().__init__()
 
-        self.title("🌟 RTDA Desktop Control Surface")
-        self.geometry("1160x700")
-        self.minsize(1020, 620)
-        self.configure(fg_color="#080C14")
+        self.title("\U0001f31f RTDA Desktop Control Surface")
+        self.geometry("1200x740")
+        self.minsize(1040, 640)
+        self.configure(fg_color=T["background_app"])
 
         self._base_config = config or CaptureConfig()
         self._enable_perception_tools = enable_perception_tools
@@ -78,43 +170,84 @@ class RTDADesktopApp(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # ── SIDEBAR FRAME ──
-        self.sidebar = ctk.CTkFrame(self, width=340, corner_radius=16, fg_color="#0F172A", border_color="#1E293B", border_width=1)
-        self.sidebar.grid(row=0, column=0, padx=12, pady=12, sticky="nsew")
+        # ══════════════════════════════════
+        #   SIDEBAR
+        # ══════════════════════════════════
+        self.sidebar = ctk.CTkFrame(
+            self, width=355, corner_radius=16,
+            fg_color=T["background_card"],
+            border_color=T["border"], border_width=1,
+        )
+        self.sidebar.grid(row=0, column=0, padx=(12, 6), pady=12, sticky="nsew")
         self.sidebar.grid_propagate(False)
         self.sidebar.grid_columnconfigure(0, weight=1)
         self.sidebar.grid_rowconfigure(3, weight=1)
 
-        # Header
+        # ── Header: logo badge + title ──
         header_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        header_frame.grid(row=0, column=0, padx=12, pady=(14, 6), sticky="ew")
-        
-        lbl_title = ctk.CTkLabel(header_frame, text="🌟 RTDA", font=ctk.CTkFont(size=22, weight="bold"), text_color="#10B981")
-        lbl_title.pack(anchor="w")
-        lbl_subtitle = ctk.CTkLabel(header_frame, text="🔌 Desktop AgentOS v3.0", font=ctk.CTkFont(size=11), text_color="#94A3B8")
-        lbl_subtitle.pack(anchor="w")
+        header_frame.grid(row=0, column=0, padx=14, pady=(16, 10), sticky="ew")
+        header_frame.grid_columnconfigure(1, weight=1)
 
-        # Status Pill Component
+        logo_badge = ctk.CTkFrame(
+            header_frame, width=48, height=48, corner_radius=12,
+            fg_color=T["accent_emerald_dark"],
+            border_color=T["accent_emerald"], border_width=1,
+        )
+        logo_badge.grid(row=0, column=0, rowspan=2, padx=(0, 12), sticky="w")
+        logo_badge.grid_propagate(False)
+        ctk.CTkLabel(logo_badge, text="\U0001f31f", font=ctk.CTkFont(size=22)).place(
+            relx=0.5, rely=0.5, anchor="center"
+        )
+
+        ctk.CTkLabel(
+            header_frame, text="RTDA Agent OS",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color=T["accent_emerald"],
+        ).grid(row=0, column=1, sticky="w")
+        ctk.CTkLabel(
+            header_frame, text="Desktop Control Surface  v3.0",
+            font=ctk.CTkFont(size=10),
+            text_color=T["text_secondary"],
+        ).grid(row=1, column=1, sticky="w")
+
+        # Divider top
+        ctk.CTkFrame(self.sidebar, height=1, fg_color=T["border"]).grid(
+            row=0, column=0, padx=14, pady=(0, 0), sticky="sew"
+        )
+
+        # ── Status Pill ──
         self.status_pill = StatusPill(self.sidebar)
-        self.status_pill.grid(row=1, column=0, padx=12, pady=4, sticky="ew")
+        self.status_pill.grid(row=1, column=0, padx=14, pady=(8, 4), sticky="ew")
 
-        # Tab Selector
+        # ── Icon Tab Selector ──
         self.tab_selector = ctk.CTkSegmentedButton(
             self.sidebar,
-            values=["Captura", "Métricas", "MCP", "IA", "Config"],
+            values=["\U0001f4f7", "\U0001f4ca", "\U0001f50c", "\U0001f916", "\u2699\ufe0f"],
             command=self._show_tab,
-            selected_color="#10B981",
-            unselected_color="#1E293B",
-            selected_hover_color="#059669",
-            font=ctk.CTkFont(size=11, weight="bold"),
-            height=32,
+            selected_color=T["accent_emerald"],
+            unselected_color="#17253D",
+            selected_hover_color=T["accent_emerald_hover"],
+            fg_color="#0D1B2E",
+            font=ctk.CTkFont(size=15),
+            height=36,
+            corner_radius=10,
         )
-        self.tab_selector.set("IA")
-        self.tab_selector.grid(row=2, column=0, padx=12, pady=8, sticky="ew")
+        self.tab_selector.set("\U0001f916")
+        self.tab_selector.grid(row=2, column=0, padx=14, pady=(8, 0), sticky="ew")
 
-        # Tab Views Container
+        # Hint labels under tabs
+        hint_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        hint_frame.grid(row=2, column=0, padx=14, pady=(42, 0), sticky="ew")
+        for hint in ["Captura", "Métricas", "MCP", "IA", "Config"]:
+            ctk.CTkLabel(
+                hint_frame, text=hint,
+                font=ctk.CTkFont(size=8),
+                text_color="#334766",
+            ).pack(side="left", expand=True)
+
+        # ── Tab Container ──
         self.tab_container = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        self.tab_container.grid(row=3, column=0, padx=12, pady=4, sticky="nsew")
+        self.tab_container.grid(row=3, column=0, padx=14, pady=4, sticky="nsew")
         self.tab_container.grid_columnconfigure(0, weight=1)
         self.tab_container.grid_rowconfigure(0, weight=1)
 
@@ -131,9 +264,21 @@ class RTDADesktopApp(ctk.CTk):
             enable_perception_tools=self._enable_perception_tools,
         )
 
-        self._show_tab("IA")
+        self._tab_map = {
+            "\U0001f4f7": self.panel_capture,
+            "\U0001f4ca": self.panel_metrics,
+            "\U0001f50c": self.panel_mcp,
+            "\U0001f916": self.panel_ai,
+            "\u2699\ufe0f": self.panel_settings,
+        }
+        self._show_tab("\U0001f916")
 
-        # Action Bar Component
+        # Divider bottom
+        ctk.CTkFrame(self.sidebar, height=1, fg_color=T["border"]).grid(
+            row=4, column=0, padx=14, pady=(4, 4), sticky="ew"
+        )
+
+        # ── Action Bar ──
         self.action_bar = ActionBar(
             self.sidebar,
             on_start=self.start_capture,
@@ -142,46 +287,29 @@ class RTDADesktopApp(ctk.CTk):
             on_uia=self.inspect_uia,
             enable_perception_tools=self._enable_perception_tools,
         )
-        self.action_bar.grid(row=4, column=0, padx=12, pady=12, sticky="ew")
+        self.action_bar.grid(row=5, column=0, padx=14, pady=(6, 14), sticky="ew")
 
-        # ── PREVIEW FRAME ──
-        self.main_frame = ctk.CTkFrame(self, corner_radius=16, fg_color="#090D16", border_color="#1E293B", border_width=1)
+        # ══════════════════════════════════
+        #   MAIN CONTENT
+        # ══════════════════════════════════
+        self.main_frame = ctk.CTkFrame(
+            self, corner_radius=16,
+            fg_color=T["background_main"],
+            border_color=T["border"], border_width=1,
+        )
         self.main_frame.grid(row=0, column=1, padx=(0, 12), pady=12, sticky="nsew")
         self.main_frame.grid_columnconfigure(0, weight=1)
-        self.main_frame.grid_rowconfigure(1, weight=1)
+        self.main_frame.grid_rowconfigure(0, weight=1)
 
-        preview_header = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        preview_header.grid(row=0, column=0, padx=16, pady=(12, 6), sticky="ew")
-        
-        lbl_preview_title = ctk.CTkLabel(preview_header, text="🖼️ Vista de Pantalla en Tiempo Real", font=ctk.CTkFont(size=14, weight="bold"), text_color="#F8FAFC")
-        lbl_preview_title.pack(side="left")
-
-        self.preview_stats_label = ctk.CTkLabel(preview_header, text="Listo | dxgi | 0.0 FPS", font=ctk.CTkFont(size=11), text_color="#38BDF8")
-        self.preview_stats_label.pack(side="right")
-
-        self.preview_surface = ctk.CTkLabel(
-            self.main_frame,
-            text="🎬 Presiona '▶ Iniciar' (F5) para previsualizar el escritorio en vivo",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            text_color="#64748B",
-            fg_color="#020617",
-            corner_radius=12,
-        )
-        self.preview_surface.grid(row=1, column=0, padx=16, pady=(0, 16), sticky="nsew")
+        # ── Collapsible Preview ──
+        self.preview = CollapsiblePreview(self.main_frame)
+        self.preview.grid(row=0, column=0, padx=12, pady=12, sticky="nsew")
 
     def _show_tab(self, name: str) -> None:
-        for p in (self.panel_capture, self.panel_metrics, self.panel_mcp, self.panel_ai, self.panel_settings):
+        for p in self._tab_map.values():
             p.grid_forget()
-
-        mapping = {
-            "Captura": self.panel_capture,
-            "Métricas": self.panel_metrics,
-            "MCP": self.panel_mcp,
-            "IA": self.panel_ai,
-            "Config": self.panel_settings,
-        }
-        if name in mapping:
-            mapping[name].grid(row=0, column=0, sticky="nsew")
+        if name in self._tab_map:
+            self._tab_map[name].grid(row=0, column=0, sticky="nsew")
 
     # ── RUNTIME CONTROLS ──
     def start_capture(self) -> None:
@@ -198,7 +326,7 @@ class RTDADesktopApp(ctk.CTk):
 
     def stop_capture(self) -> None:
         self._bridge.stop()
-        self.preview_surface.configure(image="", text="🎬 Presiona '▶ Iniciar' (F5) para previsualizar el escritorio en vivo")
+        self.preview.clear_image()
         self._update_runtime_status()
 
     def pause_or_resume(self) -> None:
@@ -290,16 +418,16 @@ class RTDADesktopApp(ctk.CTk):
                 errors=stats.backend_errors,
             )
 
-            self.preview_stats_label.configure(text=f"{stats.capture_fps:.1f} FPS | {res_str} | dxgi")
+            self.preview.update_stats(f"{stats.capture_fps:.1f} FPS  |  {res_str}  |  dxgi")
 
             if frame is not None and hasattr(frame, "data"):
                 try:
                     img = Image.fromarray(frame.data[..., :3])
-                    w = max(400, self.preview_surface.winfo_width())
-                    h = max(300, self.preview_surface.winfo_height())
+                    w = max(400, self.preview.surface.winfo_width())
+                    h = max(300, self.preview.surface.winfo_height())
                     img.thumbnail((w, h), Image.Resampling.NEAREST)
                     ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(img.width, img.height))
-                    self.preview_surface.configure(image=ctk_img, text="")
+                    self.preview.update_image(ctk_img)
                 except Exception:
                     pass
 
