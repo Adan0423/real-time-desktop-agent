@@ -132,6 +132,7 @@ def test_customtkinter_desktop_app_initializes() -> None:
         show_floating_control=False,
     )
     app.withdraw()
+    app.update_idletasks()
 
     assert app.panel_capture is not None
     assert app.panel_metrics is not None
@@ -141,6 +142,7 @@ def test_customtkinter_desktop_app_initializes() -> None:
     assert app.action_bar is not None
     assert app.status_pill is not None
 
+    app.quit()
     app.destroy()
 
 
