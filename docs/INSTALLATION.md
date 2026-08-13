@@ -1,85 +1,57 @@
 # 🚀 Guía de Instalación y Distribución — Real-Time Desktop Agent (RTDA)
 
-> **Versión**: 0.1.0 | **Plataforma**: Windows 11 | **Protocolo**: Model Context Protocol (MCP)
+> **Versión**: 3.0.1-beta | **Plataforma**: Windows 11 | **Protocolo**: Model Context Protocol (MCP)
 
 ---
 
-## ❓ 1. ¿Cómo funciona la compilación y empaquetado?
+## 🛠️ 1. Resumen de Métodos de Instalación
+
+Elige el método según el cliente o entorno desde el que te conectarás a RTDA:
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           SRC / RTDA MODULE                             │
-│                  Código fuente Python interpretado                      │
-│     (src/rtda/capture, perception, actions, agent, session, mcp)        │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │
-                                     ▼
-                      .\scripts\build_mcpb.ps1
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                    DIST ARCHIVE (.mcpb Bundle)                          │
-│          dist/real-time-desktop-agent-3.0.0-beta.mcpb (243 KB)             │
-│   Contiene todo el runtime, manifest.json y dependencias empaquetadas   │
-└─────────────────────────────────────────────────────────────────────────┘
-```
-
-> [!NOTE]
-> **El código fuente Python no se compila a un archivo ejecutable `.exe` binario.**
-> En su lugar, el script `build_mcpb.ps1` empaqueta el módulo `rtda` junto con su `manifest.json` en un archivo comprimido estándar `.mcpb` (MCP Bundle) de **1 Click** compatible con Claude Desktop y otros clientes MCP.
-
----
-
-## 🛠️ 2. Métodos de Instalación para Diferentes Plataformas
-
-Elige el método según el cliente de IA que desees conectar:
-
-```text
-                                  INSTALACIÓN
-                                       │
-         ┌─────────────────────────────┼─────────────────────────────┐
-         ▼                             ▼                             ▼
-   MÉTODO A: CLAUDE             MÉTODO B: DEVELOPER           MÉTODO C: NETWORK / API
-   Instalación 1-Click          pip / uv local install        ChatGPT / WebSocket / SSE
-   (Archivo .mcpb)              (Cursor, VSCode, Windsurf)    (Servidor en Red)
+                                  INSTALACIÓN RTDA
+                                         │
+         ┌───────────────────────────────┼───────────────────────────────┐
+         ▼                               ▼                               ▼
+   MÉTODO A: CLAUDE              MÉTODO B: CLIENTES JSON         MÉTODO C: SERVIDOR SSE
+   Instalación 1-Click           Cursor, VSCode, Windsurf,       ChatGPT, Agentes Web,
+   (Archivo .mcpb)               Roo Code (pip / uvx / venv)     Red Local (HTTP / SSE)
 ```
 
 ---
 
 ### 🟣 Método A: Claude Desktop (Instalación 1-Click con archivo `.mcpb`)
 
-Este es el método **más rápido y recomendado** para usuarios finales de Claude Desktop.
-
-> [!TIP]
-> No requiere tener Python previamente instalado ni clonar el código fuente.
+Este es el método **más rápido y recomendado** para usuarios de Claude Desktop (no requiere configurar JSON ni usar terminal).
 
 #### Pasos:
-1. **Obtener el archivo `.mcpb`**:
-   Descarga el paquete distribuible desde:
-   `dist/real-time-desktop-agent-3.0.0-beta.mcpb`
+1. **Obtener el paquete `.mcpb`**:
+   Descarga `real-time-desktop-agent-3.0.1-beta.mcpb` desde las Releases de GitHub o compílalo ejecutando:
+   ```powershell
+   .\scripts\build_mcpb.ps1
+   ```
 
 2. **Instalar en Claude Desktop**:
    - Abre **Claude Desktop**.
-   - Ve a **Settings** ⚙️ ➔ **Developer** ➔ **Add Extension**.
-   - Selecciona el archivo `real-time-desktop-agent-3.0.0-beta.mcpb` (o simplemente arrástralo sobre la ventana de Claude Desktop).
+   - Ve a **Settings (⚙️) ➔ Developer ➔ Add Extension**.
+   - Selecciona el archivo `real-time-desktop-agent-3.0.1-beta.mcpb` (o simplemente **arrástralo y suéltalo dentro de la ventana de Claude Desktop**).
 
-3. **¡Listo!**:
-   Claude Desktop instalará automáticamente las herramientas y podrás pedirle a Claude que interactúe con tu escritorio de Windows.
+3. **¡Listo!**: Claude reconocerá las herramientas de control de escritorio de forma inmediata.
 
 ---
 
 ### 🔵 Método B: Clientes con Configuración JSON (Cursor, VSCode, Roo Code, Windsurf)
 
-Ideal para conectar aplicaciones que se integran mediante la especificación estándar JSON de `mcpServers`.
+Para cualquier cliente MCP basado en la configuración estándar JSON (`mcpServers`).
 
 #### 📌 Opción 1: Instalación previa con `pip` (Modo Global Recomendado)
 
-1. **Instalar el paquete en tu entorno Python local:**
+1. **Instalar el paquete en tu Python local:**
    ```powershell
-   pip install https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.0-beta.1/real_time_desktop_agent-3.0.0b1-py3-none-any.whl
+   pip install https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.1-beta/real_time_desktop_agent-3.0.1b0-py3-none-any.whl
    ```
 
-2. **Agregar la configuración JSON al cliente MCP:**
+2. **Agregar esta configuración al archivo JSON del cliente MCP:**
    ```json
    {
      "mcpServers": {
@@ -98,7 +70,7 @@ Ideal para conectar aplicaciones que se integran mediante la especificación est
 
 #### 🚀 Opción 2: Auto-instalación con `uvx` (Cero instalación previa)
 
-Si tu cliente soporta `uv` / `uvx`, no necesitas instalar previamente el paquete. `uvx` descargará y ejecutará RTDA de forma temporal e impulsada por demandas:
+Si tu cliente soporta `uvx`, no necesitas instalar previamente el paquete. `uvx` descargará e iniciará RTDA a demanda:
 
 ```json
 {
@@ -107,7 +79,7 @@ Si tu cliente soporta `uv` / `uvx`, no necesitas instalar previamente el paquete
       "command": "uvx",
       "args": [
         "--from",
-        "https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.0-beta.1/real_time_desktop_agent-3.0.0b1-py3-none-any.whl",
+        "https://github.com/Adan0423/real-time-desktop-agent/releases/download/v3.0.1-beta/real_time_desktop_agent-3.0.1b0-py3-none-any.whl",
         "rtda-mcp",
         "--transport",
         "stdio"
@@ -119,7 +91,7 @@ Si tu cliente soporta `uv` / `uvx`, no necesitas instalar previamente el paquete
 
 ---
 
-#### 📂 Opción 3: Repositorio clonado localmente (Código fuente)
+#### 📂 Opción 3: Repositorio clonado localmente
 
 1. **Clonar e instalar dependencias:**
    ```powershell
@@ -128,8 +100,8 @@ Si tu cliente soporta `uv` / `uvx`, no necesitas instalar previamente el paquete
    uv pip install -e ".[capture,gui,dev,service]"
    ```
 
-2. **Agregar el JSON apuntando a la ruta de tu entorno virtual:**
-   > *Nota: Sustituye `C:\Path\To\real-time-desktop-agent` por la ruta real donde clonaste el proyecto en tu sistema.*
+2. **Agregar el JSON apuntando al entorno virtual local:**
+   > *Nota: Reemplaza `C:\Path\To\real-time-desktop-agent` por la ruta donde clonaste el proyecto.*
 
    ```json
    {
@@ -147,52 +119,35 @@ Si tu cliente soporta `uv` / `uvx`, no necesitas instalar previamente el paquete
    }
    ```
 
-3. **Verificar instalación**:
-   Ejecuta en tu terminal para comprobar que las herramientas se listan correctamente:
-   ```powershell
-   python -m rtda.mcp.server --transport stdio
-   ```
-
 ---
 
 ### 🔴 Método C: ChatGPT / Agentes Locales / WebSocket (Servidor SSE en Red)
 
-Ideal para conectar ChatGPT, agentes de voz o servicios que se comunican a través de la red local via HTTP / Server-Sent Events (SSE).
+Ideal para conectar ChatGPT u otros agentes mediante HTTP / Server-Sent Events (SSE).
 
-#### Pasos:
-1. **Iniciar el servidor MCP en modo SSE**:
+1. **Iniciar el servidor MCP en modo SSE:**
    ```powershell
    python -m rtda.mcp.server --transport sse
    ```
 
-2. **Conectar el cliente HTTP / SSE**:
-   El servidor escuchará en el puerto local por defecto:
-   - **URL SSE**: `http://localhost:8000/sse`
-   - **URL de Mensajes**: `http://localhost:8000/messages`
-
-3. **Conectar ChatGPT o Agentes Locales**:
-   Configura tu cliente para apuntar al endpoint `http://localhost:8000/sse`.
+2. **Conectar el cliente HTTP / SSE:**
+   - **Endpoint SSE**: `http://localhost:8000/sse`
+   - **Endpoint de Mensajes**: `http://localhost:8000/messages`
 
 ---
 
-## 🧰 3. Resumen de Herramientas MCP Incluidas
+## 🖥️ 2. Ejecutar la App de Escritorio Standalone (GUI)
 
-Una vez instalado, el agente expone las siguientes herramientas de tiempo real:
+Para abrir la interfaz gráfica nativa con vista previa en tiempo real, marco verde overlay y panel flotante:
 
-| Herramienta | Descripción | Canal |
-|---|---|---|
-| 🔍 `observe_state` | Retorna el estado actual de la pantalla (ventana activa, app, lista de elementos UIA) | Data Channel |
-| ⚡ `run_task` | Ejecuta un ciclo multi-paso completo (`OBSERVE → PLAN → ACT → VERIFY → RECOVER`) | Control Channel |
-| 🖱️ `execute_action` | Ejecuta una acción individual de mouse/teclado (`click`, `type`, `hotkey`, `scroll`, `navigate`) | Win32 SendInput |
-| 📑 `desktop_find` | Busca un elemento por texto o tipo en la ventana activa sin solicitar imágenes | Data Channel |
-| 🪟 `get_focused_window` | Retorna la ventana que tiene el foco actual en Windows | Data Channel |
-| 📊 `session_status` | Muestra el estado y tiempo de actividad de la `DesktopSession` persistente | Status |
-| 🩺 `health` | Diagnóstico de salud y fases activas del agente | Diagnostics |
+```powershell
+python -m desktop.main
+```
 
 ---
 
-## 🧱 4. Requisitos del Sistema
+## 🧱 3. Requisitos del Sistema
 
 - **Sistema Operativo**: Windows 11 / Windows 10 (Build 19041+)
-- **Python**: 3.12, 3.13 o 3.14 (para instalación por código fuente)
+- **Python**: 3.12, 3.13 o 3.14
 - **Permisos**: Permiso de usuario estándar para interacción con la UI de Windows.

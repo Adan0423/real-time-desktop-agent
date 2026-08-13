@@ -36,7 +36,7 @@ python -m pytest
 Para validar captura real:
 
 ```powershell
-python -m rtda.app.main --capture-diagnostic --duration 4 --backend dxgi
+python -m rtda.cli.main --capture-diagnostic --duration 4 --backend dxgi
 ```
 
 ## Estilo de Trabajo
@@ -44,7 +44,7 @@ python -m rtda.app.main --capture-diagnostic --duration 4 --backend dxgi
 - Mantener cambios pequenos y enfocados.
 - No introducir dependencias sin justificar su uso.
 - Documentar decisiones tecnicas en `docs/ARCHITECTURE.md`.
-- Actualizar `docs/PROGRESS.md` y `docs/TODO.md` cuando cambie el estado.
+- Actualizar `docs/DEVELOPMENT.md` cuando cambie el estado.
 - Agregar pruebas para comportamiento nuevo.
 
 ## Seguridad
