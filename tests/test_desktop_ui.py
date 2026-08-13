@@ -26,7 +26,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 # ── AI Client & Bridge Tests ────────────────────────────────────────────────
 
-def test_openai_client_posts_responses_payload() -> None:
+def test_openai_client_posts_responses_payload(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
     calls = []
 
     def transport(url, headers, payload, timeout_s):
@@ -44,6 +45,44 @@ def test_openai_client_posts_responses_payload() -> None:
     assert headers["Authorization"] == "Bearer secret"
     assert payload["model"] == "gpt-test"
     assert payload["input"] == "hello"
+
+
+def test_ai_client_uses_custom_base_url_from_env(monkeypatch) -> None:
+    monkeypatch.setenv("GROQ_BASE_URL", "http://localhost:8080/v1")
+    calls = []
+
+    def transport(url, headers, payload, timeout_s):
+        calls.append((url, headers, payload, timeout_s))
+        return {"choices": [{"message": {"content": "ok"}}]}
+
+    response = AIClient(
+        AIClientConfig(provider="groq", api_key="secret"),
+        transport=transport,
+    ).complete("test prompt")
+
+    url, _, _, _ = calls[0]
+    assert url == "http://localhost:8080/v1/chat/completions"
+    assert response.output_text == "ok"
+
+
+def test_dynamic_custom_openai_compatible_provider(monkeypatch) -> None:
+    monkeypatch.setenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com/v1")
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-deepseek-test")
+    calls = []
+
+    def transport(url, headers, payload, timeout_s):
+        calls.append((url, headers, payload, timeout_s))
+        return {"choices": [{"message": {"content": "deepseek response"}}]}
+
+    response = AIClient(
+        AIClientConfig(provider="deepseek"),
+        transport=transport,
+    ).complete("hello deepseek")
+
+    url, headers, _, _ = calls[0]
+    assert url == "https://api.deepseek.com/v1/chat/completions"
+    assert headers["Authorization"] == "Bearer sk-deepseek-test"
+    assert response.output_text == "deepseek response"
 
 
 def test_frame_to_jpeg_data_url_encodes_frame_in_memory() -> None:

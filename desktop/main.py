@@ -97,7 +97,16 @@ def run_gui(
     os.environ.setdefault("QT_LOGGING_RULES", "qt.qpa.window.warning=false")
     os.environ.setdefault("QT_ENABLE_HIGHDPI_SCALING", "1")
 
+    # Set explicit AppUserModelID so Windows Taskbar displays the app icon
+    if sys.platform == "win32":
+        try:
+            import ctypes
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Adan0423.RTDA.DesktopAgent.v3")
+        except Exception:
+            pass
+
     try:
+        from PySide6.QtGui import QIcon
         from PySide6.QtWidgets import QApplication
     except ImportError as exc:
         raise RuntimeError(
@@ -109,6 +118,10 @@ def run_gui(
 
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(not show_floating_control)
+
+    icon_path = Path(__file__).resolve().parent / "assets" / "icon.png"
+    if icon_path.exists():
+        app.setWindowIcon(QIcon(str(icon_path)))
 
     dashboard = CaptureDashboard(
         config or CaptureConfig(),
