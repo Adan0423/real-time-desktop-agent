@@ -80,13 +80,34 @@ QLabel#previewSurface {
     border: 1px solid #2a3543;
     border-radius: 8px;
 }
+QPushButton#gearButton {
+    background: #161d27;
+    color: #39d98a;
+    border: 1px solid #28374a;
+    border-radius: 6px;
+    min-width: 32px;
+    max-width: 32px;
+    min-height: 28px;
+    max-height: 28px;
+    font-size: 14px;
+    padding: 0px;
+}
+QPushButton#gearButton:hover {
+    background: #1f2c3d;
+    border-color: #39d98a;
+}
+QDialog#settingsDialog {
+    background: #0d1117;
+    color: #edf3f8;
+}
 QPushButton#navButton {
     background: #11161d;
     color: #9eaaba;
     border: 1px solid #283442;
     border-radius: 6px;
-    min-height: 26px;
+    min-height: 28px;
     padding: 4px 6px;
+    font-size: 11px;
     font-weight: 600;
 }
 QPushButton#navButton:checked {

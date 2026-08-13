@@ -9,7 +9,7 @@ class ActionBar:
     """Persistent compact runtime controls shown below every page."""
 
     def __init__(self, *, enable_perception_tools: bool) -> None:
-        from PySide6.QtWidgets import QFrame, QHBoxLayout, QPushButton
+        from PySide6.QtWidgets import QFrame, QGridLayout, QPushButton
 
         self.start_button = QPushButton("▶ Iniciar")
         self.pause_button = QPushButton("⏸ Pausar")
@@ -19,13 +19,15 @@ class ActionBar:
         self.stop_button.setEnabled(False)
         self.uia_button.setEnabled(enable_perception_tools)
 
-        layout = QHBoxLayout()
-        layout.setContentsMargins(10, 8, 10, 8)
-        layout.setSpacing(6)
-        for button in (self.start_button, self.pause_button, self.stop_button):
-            layout.addWidget(button)
-        if enable_perception_tools:
-            layout.addWidget(self.uia_button)
+        layout = QGridLayout()
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setHorizontalSpacing(6)
+        layout.setVerticalSpacing(6)
+
+        layout.addWidget(self.start_button, 0, 0)
+        layout.addWidget(self.pause_button, 0, 1)
+        layout.addWidget(self.stop_button, 1, 0)
+        layout.addWidget(self.uia_button, 1, 1)
 
         self.widget = QFrame()
         self.widget.setObjectName("actionBar")

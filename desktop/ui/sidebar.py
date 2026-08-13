@@ -41,7 +41,21 @@ class ControlSidebar:
         self.pages.addWidget(self._page(self.runtime.widget))
         self.pages.addWidget(self.mcp.widget)
         self.pages.addWidget(self.ai.widget)
-        self.pages.addWidget(self._page(self.settings.widget))
+
+        self.settings_button = QPushButton("⚙️")
+        self.settings_button.setObjectName("gearButton")
+        self.settings_button.setToolTip("Ajustes y Configuración")
+
+        header_top = QHBoxLayout()
+        header_top.setContentsMargins(0, 0, 0, 0)
+        
+        title_box = QVBoxLayout()
+        title_box.setSpacing(0)
+        title_box.addWidget(make_label("🌟 RTDA", "appTitle"))
+        title_box.addWidget(make_label("🔌 Desktop Agent OS", "mutedText"))
+        header_top.addLayout(title_box)
+        header_top.addStretch(1)
+        header_top.addWidget(self.settings_button)
 
         nav = QHBoxLayout()
         nav.setContentsMargins(0, 0, 0, 0)
@@ -53,7 +67,6 @@ class ControlSidebar:
                 ("metrics", "📊 Métricas"),
                 ("mcp", "🔌 MCP"),
                 ("ai", "🧠 IA"),
-                ("settings", "⚙️ Config"),
             )
         ):
             button = QPushButton(label)
@@ -64,22 +77,19 @@ class ControlSidebar:
             self.page_buttons[key] = button
         self.set_page(0)
 
-
         layout = QVBoxLayout()
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(8)
-        layout.addWidget(make_label("🌟 RTDA", "appTitle"))
-        layout.addWidget(make_label("🔌 Desktop Agent OS", "mutedText"))
+        layout.addLayout(header_top)
         layout.addWidget(self.status.widget)
         layout.addLayout(nav)
         layout.addWidget(self.pages, 1)
         layout.addWidget(self.actions.widget)
 
-
         self.widget = QFrame()
         self.widget.setObjectName("sidebar")
-        self.widget.setMinimumWidth(292)
-        self.widget.setMaximumWidth(310)
+        self.widget.setMinimumWidth(320)
+        self.widget.setMaximumWidth(350)
         self.widget.setLayout(layout)
 
     def set_monitors(self, monitors: list[MonitorInfo]) -> None:

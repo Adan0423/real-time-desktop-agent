@@ -181,11 +181,36 @@ class CaptureDashboard:
         self._ai_runner.submit(self.sidebar.ai.request_config(), prompt, system, frame)
         self.ai_timer.start()
 
+    def open_settings(self) -> None:
+        from desktop.ui.settings_dialog import SettingsDialog
+
+        dialog = SettingsDialog(
+            self.widget,
+            enable_perception_tools=self._enable_perception_tools,
+            show_capture_overlay=self.sidebar.settings.show_border(),
+            show_floating_control=self.sidebar.settings.floating_enabled.isChecked(),
+        )
+
+        # Sync checkboxes from active settings
+        dialog.panel.border_enabled.setChecked(self.sidebar.settings.border_enabled.isChecked())
+        dialog.panel.floating_enabled.setChecked(self.sidebar.settings.floating_enabled.isChecked())
+        if self._enable_perception_tools:
+            dialog.panel.detect_changes_cb.setChecked(self.sidebar.settings.detect_changes_cb.isChecked())
+
+        # Connect signals
+        dialog.panel.border_enabled.stateChanged.connect(self.sidebar.settings.border_enabled.setChecked)
+        dialog.panel.floating_enabled.stateChanged.connect(self.sidebar.settings.floating_enabled.setChecked)
+        if self._enable_perception_tools:
+            dialog.panel.detect_changes_cb.stateChanged.connect(self.sidebar.settings.detect_changes_cb.setChecked)
+
+        dialog.exec()
+
     def _connect_signals(self) -> None:
         self.sidebar.actions.start_button.clicked.connect(self.start)
         self.sidebar.actions.pause_button.clicked.connect(self.pause_or_resume)
         self.sidebar.actions.stop_button.clicked.connect(self.stop)
         self.sidebar.actions.uia_button.clicked.connect(self.inspect_uia)
+        self.sidebar.settings_button.clicked.connect(self.open_settings)
         self.sidebar.settings.border_enabled.stateChanged.connect(self._refresh_overlay)
         self.sidebar.settings.floating_enabled.stateChanged.connect(self._set_floating_visible)
         self.sidebar.ai.provider.currentTextChanged.connect(self.sidebar.ai.sync_model)

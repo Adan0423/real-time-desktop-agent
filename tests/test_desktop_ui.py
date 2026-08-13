@@ -207,10 +207,11 @@ def test_sidebar_uses_pages_instead_of_single_dense_column() -> None:
         show_floating_control=True,
     )
 
-    assert sidebar.pages.count() == 5
-    sidebar.set_page(4)
-    assert sidebar.pages.currentIndex() == 4
-    assert sidebar.page_buttons["settings"].isChecked() is True
+    assert sidebar.pages.count() == 4
+    sidebar.set_page(3)
+    assert sidebar.pages.currentIndex() == 3
+    assert sidebar.page_buttons["ai"].isChecked() is True
+    assert sidebar.settings_button is not None
 
     sidebar.widget.deleteLater()
     app.processEvents()
