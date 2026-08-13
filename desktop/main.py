@@ -5,12 +5,13 @@ import os
 import sys
 from pathlib import Path
 
-_ROOT_DIR = str(Path(__file__).resolve().parent.parent)
-_SRC_DIR = str(Path(__file__).resolve().parent.parent / "src")
-if _ROOT_DIR not in sys.path:
-    sys.path.insert(0, _ROOT_DIR)
-if _SRC_DIR not in sys.path:
-    sys.path.insert(0, _SRC_DIR)
+_DESKTOP_DIR = Path(__file__).resolve().parent
+_ROOT_DIR = _DESKTOP_DIR.parent
+_SRC_DIR = _ROOT_DIR / "src"
+
+for _p in (str(_ROOT_DIR), str(_SRC_DIR), str(_DESKTOP_DIR)):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 
 def load_dotenv_if_present() -> None:
@@ -104,15 +105,17 @@ def run_gui(
         except Exception:
             pass
 
-    from desktop.ui import run_gui as run_app_gui
+    try:
+        from desktop.ui import run_gui as run_app_gui
+    except ModuleNotFoundError:
+        from ui import run_gui as run_app_gui
+
     return run_app_gui(
         config=config,
         enable_perception_tools=enable_perception_tools,
         show_capture_overlay=show_capture_overlay,
         show_floating_control=show_floating_control,
     )
-    dashboard.show()
-    return app.exec()
 
 
 def run_web_ui() -> int:

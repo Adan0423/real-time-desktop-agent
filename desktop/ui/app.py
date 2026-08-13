@@ -142,15 +142,19 @@ class RTDADesktopApp(ctk.CTk):
         self._setup_window_icon()
         self._build_ui()
 
-        self._floating = RTDAFloatingControl(
-            on_open=self.restore_window,
-            on_start=self.start_capture,
-            on_pause=self.pause_or_resume,
-            on_stop=self.stop_capture,
-            on_quit=self.quit_app,
-        )
+        self._floating = None
         if self._show_floating_control:
-            self._floating.show()
+            try:
+                self._floating = RTDAFloatingControl(
+                    on_open=self.restore_window,
+                    on_start=self.start_capture,
+                    on_pause=self.pause_or_resume,
+                    on_stop=self.stop_capture,
+                    on_quit=self.quit_app,
+                )
+                self._floating.show()
+            except Exception:
+                self._floating = None
 
         self._load_monitors()
         self._update_loop()
@@ -361,9 +365,22 @@ class RTDADesktopApp(ctk.CTk):
 
     def _toggle_floating(self) -> None:
         if self.panel_settings.chk_floating.get() == 1:
-            self._floating.show()
+            if self._floating is None:
+                try:
+                    self._floating = RTDAFloatingControl(
+                        on_open=self.restore_window,
+                        on_start=self.start_capture,
+                        on_pause=self.pause_or_resume,
+                        on_stop=self.stop_capture,
+                        on_quit=self.quit_app,
+                    )
+                except Exception:
+                    pass
+            if self._floating is not None:
+                self._floating.show()
         else:
-            self._floating.hide()
+            if self._floating is not None:
+                self._floating.hide()
 
     def restore_window(self) -> None:
         self.deiconify()
@@ -372,7 +389,8 @@ class RTDADesktopApp(ctk.CTk):
 
     def quit_app(self) -> None:
         self._bridge.shutdown()
-        self._floating.shutdown()
+        if self._floating is not None:
+            self._floating.shutdown()
         self.destroy()
 
     def _update_runtime_status(self) -> None:
@@ -389,20 +407,36 @@ class RTDADesktopApp(ctk.CTk):
         self.action_bar.set_running_state(running=running, paused=paused)
 
         stats = self._bridge.metrics()
-        self._floating.set_status(
-            running=running,
-            paused=paused,
-            fps=stats.capture_fps,
-            resolution=f"{stats.latest_width}x{stats.latest_height}" if stats.latest_width else "-",
-            latency_ms=stats.capture_latency_ms,
-            dropped=stats.buffer_dropped_frames,
-        )
+        if self._floating is not None:
+            self._floating.set_status(
+                running=running,
+                paused=paused,
+                fps=stats.capture_fps,
+                resolution=f"{stats.latest_width}x{stats.latest_height}" if stats.latest_width else "-",
+                latency_ms=stats.capture_latency_ms,
+                dropped=stats.buffer_dropped_frames,
+            )
 
     def _load_monitors(self) -> None:
         monitors = self._bridge.list_monitors()
         self.panel_capture.set_monitors(monitors)
 
+    def destroy(self) -> None:
+        if hasattr(self, "_timer_id") and self._timer_id:
+            try:
+                self.after_cancel(self._timer_id)
+            except Exception:
+                pass
+            self._timer_id = None
+        super().destroy()
+
     def _update_loop(self) -> None:
+        try:
+            if not self.winfo_exists():
+                return
+        except Exception:
+            return
+
         if self._bridge.running:
             frame = self._bridge.latest_frame()
             stats = self._bridge.metrics()
@@ -439,7 +473,11 @@ class RTDADesktopApp(ctk.CTk):
             else:
                 self.panel_ai.set_output(f"🤖 {res.text}")
 
-        self.after(33, self._update_loop)
+        try:
+            if self.winfo_exists():
+                self._timer_id = self.after(33, self._update_loop)
+        except Exception:
+            pass
 
 
 def run_gui(

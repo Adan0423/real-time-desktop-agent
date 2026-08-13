@@ -19,6 +19,10 @@ class RTDAFloatingControl:
         on_screenshot: Callable[[], None] | None = None,
         on_settings: Callable[[], None] | None = None,
     ) -> None:
+        from desktop.overlay.qt import get_or_create_qapp
+
+        get_or_create_qapp()
+
         self.widget = FloatingWidget(
             on_open=on_open,
             on_start=on_start,

@@ -1,10 +1,25 @@
-from __future__ import annotations
+import sys
 
 from desktop.overlay.geometry import OverlayRect
+
+_QAPP_INSTANCE = None
+
+
+def get_or_create_qapp():
+    global _QAPP_INSTANCE
+    from PySide6.QtWidgets import QApplication
+
+    app = QApplication.instance()
+    if app is None:
+        if _QAPP_INSTANCE is None:
+            _QAPP_INSTANCE = QApplication(sys.argv if sys.argv else [""])
+        app = _QAPP_INSTANCE
+    return app
 
 
 class GreenCaptureOverlay:
     def __init__(self, *, border_width: int = 4) -> None:
+        get_or_create_qapp()
         from PySide6.QtCore import Qt
         from PySide6.QtGui import QColor
 
@@ -40,6 +55,7 @@ class GreenCaptureOverlay:
 
 class _OverlayWidget:
     def __init__(self, *, border_width: int) -> None:
+        get_or_create_qapp()
         from PySide6.QtWidgets import QWidget
 
         class OverlayWidget(QWidget):
