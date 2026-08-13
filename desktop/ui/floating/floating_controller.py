@@ -30,6 +30,26 @@ class RTDAFloatingControl:
         )
         self.widget.setWindowTitle("RTDA")
 
+    @property
+    def status(self):
+        return self.widget.collapsed_status
+
+    @property
+    def metrics(self):
+        return self.widget.exp_metrics
+
+    @property
+    def run_button(self):
+        return self.widget.start_btn
+
+    @property
+    def pause_button(self):
+        return self.widget.pause_btn
+
+    @property
+    def stop_button(self):
+        return self.widget.stop_btn
+
     def show(self) -> None:
         self.widget.show()
         self.widget.raise_()

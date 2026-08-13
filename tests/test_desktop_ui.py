@@ -253,6 +253,37 @@ def test_floating_control_status_and_visibility() -> None:
     control.widget.deleteLater()
 
 
+def test_floating_widget_dual_mode_expansion_and_collapse() -> None:
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+    widgets = pytest.importorskip("PySide6.QtWidgets")
+
+    from desktop.ui.floating import RTDAFloatingControl
+
+    app = widgets.QApplication.instance() or widgets.QApplication([])
+    control = RTDAFloatingControl(
+        on_open=lambda: None,
+        on_start=lambda: None,
+        on_pause=lambda: None,
+        on_stop=lambda: None,
+        on_quit=lambda: None,
+    )
+
+    widget = control.widget
+    assert widget._mode == "COLLAPSED"
+    assert widget.expanded_panel.isHidden() is True
+
+    widget.expand()
+    assert widget._mode == "EXPANDED"
+    assert widget.expanded_panel.isHidden() is False
+
+    widget.collapse()
+    assert widget._mode == "COLLAPSED"
+    assert widget.expanded_panel.isHidden() is True
+
+    widget.deleteLater()
+    app.processEvents()
+
+
 # ── Overlay Geometry Tests ──────────────────────────────────────────────────
 
 def test_capture_rect_uses_monitor_bounds() -> None:
