@@ -45,10 +45,17 @@ class CaptureDashboard:
             def closeEvent(self, event) -> None:
                 self._dashboard._handle_close_event(event)
 
+        from pathlib import Path
+        from PySide6.QtGui import QIcon
+
         self.widget = DashboardWindow(self)
         self.widget.setObjectName("rtdaRoot")
         self.widget.setWindowTitle("🌟 RTDA Desktop Control Surface")
         self.widget.resize(1060, 660)
+
+        icon_path = Path(__file__).resolve().parent / "assets" / "icon.png"
+        if icon_path.exists():
+            self.widget.setWindowIcon(QIcon(str(icon_path)))
 
         self.sidebar = ControlSidebar(
             config=self._config,

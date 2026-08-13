@@ -24,9 +24,17 @@ class RTDAFloatingControl:
         self._paused = False
         self._positioned = False
 
+        from pathlib import Path
+        from PySide6.QtGui import QIcon
+
         shell = FloatingShell()
         self.widget = shell.widget
         self.widget.setWindowTitle("RTDA")
+
+        icon_path = Path(__file__).resolve().parent / "assets" / "icon.png"
+        if icon_path.exists():
+            self.widget.setWindowIcon(QIcon(str(icon_path)))
+
         self.widget.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
             | Qt.WindowType.Tool
