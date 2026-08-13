@@ -36,10 +36,10 @@ class ActionBar(ctk.CTkFrame):
             fg_color="#065F46",
             hover_color="#047857",
             text_color="#ECFDF5",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            height=34,
+            font=ctk.CTkFont(size=11, weight="bold"),
+            height=30,
         )
-        self.btn_start.grid(row=0, column=0, padx=4, pady=4, sticky="ew")
+        self.btn_start.grid(row=0, column=0, padx=3, pady=3, sticky="ew")
 
         self.btn_pause = ctk.CTkButton(
             self,
@@ -49,10 +49,10 @@ class ActionBar(ctk.CTkFrame):
             fg_color="#78350F",
             hover_color="#92400E",
             text_color="#FFFBEB",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            height=34,
+            font=ctk.CTkFont(size=11, weight="bold"),
+            height=30,
         )
-        self.btn_pause.grid(row=0, column=1, padx=4, pady=4, sticky="ew")
+        self.btn_pause.grid(row=0, column=1, padx=3, pady=3, sticky="ew")
 
         self.btn_stop = ctk.CTkButton(
             self,
@@ -62,10 +62,10 @@ class ActionBar(ctk.CTkFrame):
             fg_color="#7F1D1D",
             hover_color="#991B1B",
             text_color="#FEF2F2",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            height=34,
+            font=ctk.CTkFont(size=11, weight="bold"),
+            height=30,
         )
-        self.btn_stop.grid(row=1, column=0, padx=4, pady=4, sticky="ew")
+        self.btn_stop.grid(row=1, column=0, padx=3, pady=3, sticky="ew")
 
         self.btn_uia = ctk.CTkButton(
             self,
@@ -75,10 +75,10 @@ class ActionBar(ctk.CTkFrame):
             fg_color="#0284C7",
             hover_color="#0369A1",
             text_color="#F0F9FF",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            height=34,
+            font=ctk.CTkFont(size=11, weight="bold"),
+            height=30,
         )
-        self.btn_uia.grid(row=1, column=1, padx=4, pady=4, sticky="ew")
+        self.btn_uia.grid(row=1, column=1, padx=3, pady=3, sticky="ew")
 
     def set_running_state(self, *, running: bool, paused: bool) -> None:
         if running and paused:

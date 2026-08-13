@@ -189,23 +189,23 @@ class RTDADesktopApp(ctk.CTk):
 
         # ── Header: logo badge + title ──
         header_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        header_frame.grid(row=0, column=0, padx=14, pady=(16, 10), sticky="ew")
+        header_frame.grid(row=0, column=0, padx=12, pady=(10, 4), sticky="ew")
         header_frame.grid_columnconfigure(1, weight=1)
 
         logo_badge = ctk.CTkFrame(
-            header_frame, width=48, height=48, corner_radius=12,
+            header_frame, width=38, height=38, corner_radius=10,
             fg_color=T["accent_emerald_dark"],
             border_color=T["accent_emerald"], border_width=1,
         )
-        logo_badge.grid(row=0, column=0, rowspan=2, padx=(0, 12), sticky="w")
+        logo_badge.grid(row=0, column=0, rowspan=2, padx=(0, 10), sticky="w")
         logo_badge.grid_propagate(False)
-        ctk.CTkLabel(logo_badge, text="\U0001f31f", font=ctk.CTkFont(size=22)).place(
+        ctk.CTkLabel(logo_badge, text="\U0001f31f", font=ctk.CTkFont(size=18)).place(
             relx=0.5, rely=0.5, anchor="center"
         )
 
         ctk.CTkLabel(
             header_frame, text="RTDA Agent OS",
-            font=ctk.CTkFont(size=18, weight="bold"),
+            font=ctk.CTkFont(size=16, weight="bold"),
             text_color=T["accent_emerald"],
         ).grid(row=0, column=1, sticky="w")
         ctk.CTkLabel(
@@ -214,44 +214,29 @@ class RTDADesktopApp(ctk.CTk):
             text_color=T["text_secondary"],
         ).grid(row=1, column=1, sticky="w")
 
-        # Divider top
-        ctk.CTkFrame(self.sidebar, height=1, fg_color=T["border"]).grid(
-            row=0, column=0, padx=14, pady=(0, 0), sticky="sew"
-        )
-
         # ── Status Pill ──
         self.status_pill = StatusPill(self.sidebar)
-        self.status_pill.grid(row=1, column=0, padx=14, pady=(8, 4), sticky="ew")
+        self.status_pill.grid(row=1, column=0, padx=12, pady=(4, 4), sticky="ew")
 
-        # ── Icon Tab Selector ──
+        # ── Icon + Text Tab Selector ──
         self.tab_selector = ctk.CTkSegmentedButton(
             self.sidebar,
-            values=["\U0001f4f7", "\U0001f4ca", "\U0001f50c", "\U0001f916", "\u2699\ufe0f"],
+            values=["📷 Captura", "📊 Métricas", "🔌 MCP", "🤖 IA", "⚙️ Config"],
             command=self._show_tab,
             selected_color=T["accent_emerald"],
             unselected_color="#17253D",
             selected_hover_color=T["accent_emerald_hover"],
             fg_color="#0D1B2E",
-            font=ctk.CTkFont(size=15),
-            height=36,
+            font=ctk.CTkFont(size=11, weight="bold"),
+            height=32,
             corner_radius=10,
         )
-        self.tab_selector.set("\U0001f916")
-        self.tab_selector.grid(row=2, column=0, padx=14, pady=(8, 0), sticky="ew")
-
-        # Hint labels under tabs
-        hint_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        hint_frame.grid(row=2, column=0, padx=14, pady=(42, 0), sticky="ew")
-        for hint in ["Captura", "Métricas", "MCP", "IA", "Config"]:
-            ctk.CTkLabel(
-                hint_frame, text=hint,
-                font=ctk.CTkFont(size=8),
-                text_color="#334766",
-            ).pack(side="left", expand=True)
+        self.tab_selector.set("🤖 IA")
+        self.tab_selector.grid(row=2, column=0, padx=12, pady=(6, 4), sticky="ew")
 
         # ── Tab Container ──
         self.tab_container = ctk.CTkFrame(self.sidebar, fg_color="transparent")
-        self.tab_container.grid(row=3, column=0, padx=14, pady=4, sticky="nsew")
+        self.tab_container.grid(row=3, column=0, padx=12, pady=(4, 4), sticky="nsew")
         self.tab_container.grid_columnconfigure(0, weight=1)
         self.tab_container.grid_rowconfigure(0, weight=1)
 
@@ -269,18 +254,13 @@ class RTDADesktopApp(ctk.CTk):
         )
 
         self._tab_map = {
-            "\U0001f4f7": self.panel_capture,
-            "\U0001f4ca": self.panel_metrics,
-            "\U0001f50c": self.panel_mcp,
-            "\U0001f916": self.panel_ai,
-            "\u2699\ufe0f": self.panel_settings,
+            "📷 Captura": self.panel_capture,
+            "📊 Métricas": self.panel_metrics,
+            "🔌 MCP": self.panel_mcp,
+            "🤖 IA": self.panel_ai,
+            "⚙️ Config": self.panel_settings,
         }
-        self._show_tab("\U0001f916")
-
-        # Divider bottom
-        ctk.CTkFrame(self.sidebar, height=1, fg_color=T["border"]).grid(
-            row=4, column=0, padx=14, pady=(4, 4), sticky="ew"
-        )
+        self._show_tab("🤖 IA")
 
         # ── Action Bar ──
         self.action_bar = ActionBar(
@@ -291,7 +271,7 @@ class RTDADesktopApp(ctk.CTk):
             on_uia=self.inspect_uia,
             enable_perception_tools=self._enable_perception_tools,
         )
-        self.action_bar.grid(row=5, column=0, padx=14, pady=(6, 14), sticky="ew")
+        self.action_bar.grid(row=4, column=0, padx=12, pady=(4, 10), sticky="ew")
 
         # ══════════════════════════════════
         #   MAIN CONTENT

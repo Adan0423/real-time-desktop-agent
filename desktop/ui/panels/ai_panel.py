@@ -29,38 +29,39 @@ class AiPanel(ctk.CTkFrame):
             text_color="#38BDF8",
             border_color="#1E293B",
             border_width=1,
-            corner_radius=10,
-            font=ctk.CTkFont(size=11, weight="bold"),
-            height=32,
+            corner_radius=8,
+            font=ctk.CTkFont(size=10, weight="bold"),
+            height=28,
         )
-        self.toggle_config_btn.pack(fill="x", pady=(0, 6))
+        self.toggle_config_btn.pack(fill="x", pady=(0, 4))
 
         # ── 2. COLLAPSIBLE CONFIG BOX ──
         self.config_box = ctk.CTkFrame(self, fg_color="#020617", corner_radius=10, border_color="#1E293B", border_width=1)
 
-        ctk.CTkLabel(self.config_box, text="🤖 Proveedor IA:", font=ctk.CTkFont(size=11), text_color="#94A3B8").pack(anchor="w", padx=10, pady=(6, 0))
+        ctk.CTkLabel(self.config_box, text="🤖 Proveedor IA:", font=ctk.CTkFont(size=10), text_color="#94A3B8").pack(anchor="w", padx=8, pady=(4, 0))
         self.opt_provider = ctk.CTkOptionMenu(
             self.config_box,
             values=list(AI_PROVIDERS),
             command=self._on_provider_changed,
             fg_color="#1E293B",
             button_color="#0F172A",
-            height=28,
+            height=26,
+            font=ctk.CTkFont(size=11),
         )
         self.opt_provider.set("groq")
-        self.opt_provider.pack(fill="x", padx=10, pady=(2, 4))
+        self.opt_provider.pack(fill="x", padx=8, pady=(2, 3))
 
-        ctk.CTkLabel(self.config_box, text="⚡ Modelo:", font=ctk.CTkFont(size=11), text_color="#94A3B8").pack(anchor="w", padx=10, pady=(4, 0))
-        self.entry_model = ctk.CTkEntry(self.config_box, height=28, fg_color="#090D16", border_color="#1E293B")
+        ctk.CTkLabel(self.config_box, text="⚡ Modelo:", font=ctk.CTkFont(size=10), text_color="#94A3B8").pack(anchor="w", padx=8, pady=(3, 0))
+        self.entry_model = ctk.CTkEntry(self.config_box, height=26, fg_color="#090D16", border_color="#1E293B", font=ctk.CTkFont(size=11))
         self.entry_model.insert(0, default_model("groq"))
-        self.entry_model.pack(fill="x", padx=10, pady=(2, 4))
+        self.entry_model.pack(fill="x", padx=8, pady=(2, 3))
 
-        ctk.CTkLabel(self.config_box, text="🔑 Token API / Clave:", font=ctk.CTkFont(size=11), text_color="#94A3B8").pack(anchor="w", padx=10, pady=(4, 0))
-        self.entry_token = ctk.CTkEntry(self.config_box, height=28, show="•", fg_color="#090D16", border_color="#1E293B")
-        self.entry_token.pack(fill="x", padx=10, pady=(2, 4))
+        ctk.CTkLabel(self.config_box, text="🔑 Token API / Clave:", font=ctk.CTkFont(size=10), text_color="#94A3B8").pack(anchor="w", padx=8, pady=(3, 0))
+        self.entry_token = ctk.CTkEntry(self.config_box, height=26, show="•", fg_color="#090D16", border_color="#1E293B", font=ctk.CTkFont(size=11))
+        self.entry_token.pack(fill="x", padx=8, pady=(2, 3))
 
-        self.lbl_env_status = ctk.CTkLabel(self.config_box, text="● API Key detectada en .env", font=ctk.CTkFont(size=10, weight="bold"), text_color="#34D399")
-        self.lbl_env_status.pack(anchor="w", padx=10, pady=(0, 6))
+        self.lbl_env_status = ctk.CTkLabel(self.config_box, text="● API Key detectada en .env", font=ctk.CTkFont(size=9, weight="bold"), text_color="#34D399")
+        self.lbl_env_status.pack(anchor="w", padx=8, pady=(0, 4))
         self._sync_token("groq")
 
         # Config box is hidden by default!
@@ -69,14 +70,14 @@ class AiPanel(ctk.CTkFrame):
         # ── 3. CHAT PROMPT INPUT ──
         self.txt_prompt = ctk.CTkTextbox(
             self,
-            height=100,
+            height=60,
             fg_color="#020617",
             border_color="#1E293B",
             border_width=1,
-            corner_radius=10,
-            font=ctk.CTkFont(size=12),
+            corner_radius=8,
+            font=ctk.CTkFont(size=11),
         )
-        self.txt_prompt.pack(fill="x", pady=(0, 6))
+        self.txt_prompt.pack(fill="x", pady=(0, 4))
         self.txt_prompt.insert("1.0", "💡 Consulta en vivo sobre el escritorio...")
 
         # ── 4. CONSULTAR IA ACTION BUTTON ──
@@ -87,11 +88,11 @@ class AiPanel(ctk.CTkFrame):
             fg_color="#10B981",
             hover_color="#059669",
             text_color="#ECFDF5",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            height=36,
-            corner_radius=10,
+            font=ctk.CTkFont(size=11, weight="bold"),
+            height=30,
+            corner_radius=8,
         )
-        self.btn_ask.pack(fill="x", pady=(0, 6))
+        self.btn_ask.pack(fill="x", pady=(0, 4))
 
         # ── 5. AI RESPONSE OUTPUT BOX (EXPANDED TO FILL SPACE) ──
         self.txt_output = ctk.CTkTextbox(
@@ -100,7 +101,7 @@ class AiPanel(ctk.CTkFrame):
             text_color="#38BDF8",
             border_color="#1E293B",
             border_width=1,
-            corner_radius=10,
+            corner_radius=8,
             font=ctk.CTkFont(size=11),
         )
         self.txt_output.pack(fill="both", expand=True)
