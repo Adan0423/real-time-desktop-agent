@@ -9,20 +9,20 @@ una region o una ventana concreta.
 La UI lo activa por defecto:
 
 ```powershell
-python -m rtda.app.main
+python -m rtda.cli.main
 ```
 
 Para ocultarlo:
 
 ```powershell
-python -m rtda.app.main --hide-overlay
+python -m rtda.cli.main --hide-overlay
 ```
 
 ## Implementacion
 
-- `rtda.overlay.geometry` calcula el rectangulo de captura.
-- `rtda.overlay.windows` resuelve bounds de ventana por titulo.
-- `rtda.overlay.qt` dibuja un `QWidget` transparente, topmost y click-through.
+- `desktop.overlay.geometry` calcula el rectangulo de captura.
+- `desktop.overlay.windows` resuelve bounds de ventana por titulo.
+- `desktop.overlay.qt` dibuja un `QWidget` transparente, topmost y click-through.
 
 Para ventanas se intenta primero `DwmGetWindowAttribute` con
 `DWMWA_EXTENDED_FRAME_BOUNDS`, porque representa mejor el marco visible. Si no

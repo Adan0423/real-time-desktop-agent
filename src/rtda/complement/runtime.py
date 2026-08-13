@@ -10,7 +10,7 @@ from rtda.capture.interface import CaptureConfig, CaptureStats, MonitorInfo
 from rtda.capture.windows_capture import WindowsCaptureEngine
 from rtda.models.actions import ActionCommand, ActionResult, ActionType
 from rtda.models.perception import BoundingBox, ChangeDetectionResult, PerceptionElement, UIASnapshot
-from rtda.overlay.geometry import OverlayRect, capture_rect_from_config
+from desktop.overlay.geometry import OverlayRect, capture_rect_from_config
 from rtda.perception.change_detector import FrameChangeProcessor
 from rtda.perception.opencv_detector import OpenCVChangeDetector
 from rtda.perception.uia import UIAConfig, WindowsUIAutomationInspector

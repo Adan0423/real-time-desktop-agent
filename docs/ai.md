@@ -3,7 +3,7 @@
 ## Objetivo
 
 La app propia de RTDA incluye un panel IA para pruebas controladas. Este panel
-usa un cliente interno pequeno (`rtda.ai.AIClient`) con varios proveedores:
+usa un cliente interno pequeno (`desktop.ai.AIClient`) con varios proveedores:
 
 | Proveedor | API | Endpoint | Token |
 | --- | --- | --- | --- |

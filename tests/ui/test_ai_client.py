@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from rtda.ai.client import AIClient, AIClientConfig, AIClientError, default_model
+from desktop.ai.client import AIClient, AIClientConfig, AIClientError, default_model
 
 
 def test_openai_client_posts_responses_payload() -> None:

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from rtda.overlay.geometry import OverlayRect
+from desktop.overlay.geometry import OverlayRect
 
 
 class GreenCaptureOverlay:
     def __init__(self, *, border_width: int = 4) -> None:
         from PySide6.QtCore import Qt
         from PySide6.QtGui import QColor
-        from PySide6.QtWidgets import QWidget
 
         self.Qt = Qt
         self.QColor = QColor

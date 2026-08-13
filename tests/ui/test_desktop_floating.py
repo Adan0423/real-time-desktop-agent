@@ -30,7 +30,7 @@ def test_floating_control_status_and_visibility() -> None:
         dropped=1,
     )
 
-    assert "Active" in control.status.text()
+    assert any(word in control.status.text() for word in ("Active", "Activo"))
     assert "59.8 FPS" in control.metrics.text()
     assert control.run_button.isEnabled() is False
     assert control.pause_button.isEnabled() is True

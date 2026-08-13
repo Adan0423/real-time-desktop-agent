@@ -45,7 +45,7 @@ def capture_rect_from_config(
 ) -> OverlayRect | None:
     if config.window_title:
         if window_resolver is None:
-            from rtda.overlay.windows import find_window_rect_by_title
+            from desktop.overlay.windows import find_window_rect_by_title
 
             window_resolver = find_window_rect_by_title
         return window_resolver(config.window_title)

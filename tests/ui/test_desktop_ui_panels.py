@@ -40,7 +40,7 @@ def test_ai_panel_syncs_provider_model() -> None:
     widgets = pytest.importorskip("PySide6.QtWidgets")
 
     from desktop.ui.panels import AiPanel
-    from rtda.ai.client import AI_PROVIDERS, default_model
+    from desktop.ai.client import AI_PROVIDERS, default_model
 
     app = widgets.QApplication.instance() or widgets.QApplication([])
     panel = AiPanel()
@@ -104,9 +104,9 @@ def test_sidebar_uses_pages_instead_of_single_dense_column() -> None:
         show_floating_control=True,
     )
 
-    assert sidebar.pages.count() == 4
-    sidebar.set_page(3)
-    assert sidebar.pages.currentIndex() == 3
+    assert sidebar.pages.count() == 5
+    sidebar.set_page(4)
+    assert sidebar.pages.currentIndex() == 4
     assert sidebar.page_buttons["settings"].isChecked() is True
 
     sidebar.widget.deleteLater()

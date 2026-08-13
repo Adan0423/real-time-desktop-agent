@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from rtda.ai.client import AIClientError
+from desktop.ai.client import AIClientError
 from rtda.capture.interface import CaptureConfig
 
 from desktop.ai_bridge import AIRequestRunner, build_ai_system_prompt

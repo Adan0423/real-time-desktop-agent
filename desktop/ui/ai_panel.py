@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from rtda.ai.client import AI_PROVIDERS, AIClientConfig, default_model, env_var_for_provider
+from desktop.ai.client import AI_PROVIDERS, AIClientConfig, default_model, env_var_for_provider
 
 from desktop.ui.widgets import make_label
 

@@ -12,7 +12,7 @@ from rtda.capture.windows_capture import WindowsCaptureEngine
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="RTDA complement capture CLI")
+    parser = argparse.ArgumentParser(description="RTDA capture CLI")
     parser.add_argument("--backend", choices=["dxgi", "wgc"], default="dxgi")
     parser.add_argument("--target-fps", type=int, default=60)
     parser.add_argument("--max-buffer-size", type=int, default=2)

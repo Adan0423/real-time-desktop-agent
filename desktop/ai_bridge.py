@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 from concurrent.futures import Future, ThreadPoolExecutor
 
-from rtda.ai.client import AIClient, AIClientConfig
+from desktop.ai.client import AIClient, AIClientConfig
 from rtda.capture.frame import Frame
 from rtda.capture.interface import CaptureStats
 

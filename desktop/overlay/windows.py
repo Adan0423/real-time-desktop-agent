@@ -3,7 +3,7 @@ from __future__ import annotations
 import ctypes
 from ctypes import wintypes
 
-from rtda.overlay.geometry import OverlayRect
+from desktop.overlay.geometry import OverlayRect
 
 DWMWA_EXTENDED_FRAME_BOUNDS = 9
 

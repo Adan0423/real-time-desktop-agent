@@ -7,8 +7,8 @@ from typing import Any
 from rtda.capture.interface import CaptureConfig, CaptureStats, MonitorInfo
 from rtda.capture.region import Region
 from rtda.complement import RTDAComplementConfig, RTDAComplementRuntime
-from rtda.overlay.geometry import capture_rect_from_config
-from rtda.overlay.qt import GreenCaptureOverlay
+from desktop.overlay.geometry import capture_rect_from_config
+from desktop.overlay.qt import GreenCaptureOverlay
 
 
 class DesktopRuntimeBridge:

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from rtda.capture.interface import CaptureConfig, MonitorInfo
 from rtda.capture.region import Region
-from rtda.overlay.geometry import OverlayRect, capture_rect_from_config
+from desktop.overlay.geometry import OverlayRect, capture_rect_from_config
 
 
 def test_capture_rect_uses_monitor_bounds() -> None:

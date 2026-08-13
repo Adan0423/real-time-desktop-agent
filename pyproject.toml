@@ -42,7 +42,7 @@ service = [
 ]
 
 [project.scripts]
-rtda-capture = "rtda.app.main:main"
+rtda-capture = "rtda.cli.main:main"
 rtda-mcp = "rtda.mcp.server:main"
 
 [tool.setuptools.packages.find]
