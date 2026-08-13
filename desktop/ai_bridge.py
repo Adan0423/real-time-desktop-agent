@@ -79,23 +79,23 @@ class DesktopAiRunner:
 
 def build_ai_system_prompt(
     *,
-    backend: str,
+    backend: str = "dxgi",
     stats: CaptureStats,
     frame: Frame | None,
 ) -> str:
-    """Builds the compact runtime context passed to manual AI tests."""
+    """Builds the compact runtime context passed to AI requests, strictly enforcing Spanish response."""
 
-    resolution = "unknown"
+    resolution = "desconocida"
     if stats.latest_width and stats.latest_height:
         resolution = f"{stats.latest_width}x{stats.latest_height}"
-    observation_text = "no live visual observation available" if frame is None else "live visual observation available"
+    observation_text = "no hay observación visual en vivo disponible" if frame is None else "observación visual en vivo disponible"
     return (
-        "You are connected to RTDA, a local real-time desktop observation and control runtime. "
-        "Use the live desktop observation supplied for this request when it is present. "
-        "It represents the current desktop state, not saved history. If no visual observation "
-        "is available, use capture metrics as context and do not claim visual details. "
-        f"Capture backend={backend}, resolution={resolution}, "
-        f"fps={stats.capture_fps:.2f}, latency_ms={stats.capture_latency_ms}, {observation_text}."
+        "REGLA OBLIGATORIA: DEBES RESPONDER SIEMPRE EN ESPAÑOL. "
+        "Eres el asistente de IA en tiempo real para RTDA (Real-Time Desktop AgentOS). "
+        "Responde siempre de forma clara, concisa y profesional en idioma español. "
+        "Utiliza la observación del escritorio en vivo proporcionada cuando esté presente. "
+        f"Contexto de captura: backend={backend}, resolución={resolution}, "
+        f"fps={stats.capture_fps:.1f}, latencia={stats.capture_latency_ms}ms, {observation_text}."
     )
 
 

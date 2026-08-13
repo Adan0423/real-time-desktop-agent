@@ -333,8 +333,9 @@ class RTDADesktopApp(ctk.CTk):
 
         cfg = AIClientConfig(provider=provider, api_key=token, model=model)
         frame = self._bridge.latest_frame()
-        stats = self._bridge.metrics()
-        system_prompt = f"RTDA AgentOS Live Context. FPS: {stats.capture_fps:.1f}, Frames: {stats.frames_captured}."
+        from desktop.ai_bridge import build_ai_system_prompt
+
+        system_prompt = build_ai_system_prompt(backend="dxgi", stats=stats, frame=frame)
 
         self.panel_ai.set_busy(True)
         self.panel_ai.set_output("🧠 Procesando respuesta de IA...")
