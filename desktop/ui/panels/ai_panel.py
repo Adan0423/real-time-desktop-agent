@@ -78,7 +78,6 @@ class AiPanel(ctk.CTkFrame):
             font=ctk.CTkFont(size=11),
         )
         self.txt_prompt.pack(fill="x", pady=(0, 4))
-        self.txt_prompt.insert("1.0", "💡 Consulta en vivo sobre el escritorio...")
 
         # ── 4. CONSULTAR IA ACTION BUTTON ──
         self.btn_ask = ctk.CTkButton(
