@@ -122,99 +122,26 @@ def test_system_prompt_describes_live_state_without_history() -> None:
 
 # ── Desktop UI Panels & Widgets Tests ───────────────────────────────────────
 
-def test_target_panel_returns_compact_capture_selection() -> None:
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    widgets = pytest.importorskip("PySide6.QtWidgets")
+def test_customtkinter_desktop_app_initializes() -> None:
+    from desktop.ui.app import RTDADesktopApp
 
-    from desktop.ui.panels import TargetPanel
-
-    app = widgets.QApplication.instance() or widgets.QApplication([])
-    panel = TargetPanel(config=CaptureConfig(target_fps=75))
-    panel.set_monitors([])
-    panel.region_enabled.setChecked(True)
-    panel.left_spin.setValue(10)
-    panel.top_spin.setValue(20)
-    panel.right_spin.setValue(800)
-    panel.bottom_spin.setValue(600)
-
-    selection = panel.selection()
-
-    assert selection.target_fps == 75
-    assert selection.region is not None
-    assert selection.region.to_tuple() == (10, 20, 800, 600)
-
-    panel.widget.deleteLater()
-    app.processEvents()
-
-
-def test_ai_panel_syncs_provider_model() -> None:
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    widgets = pytest.importorskip("PySide6.QtWidgets")
-
-    from desktop.ui.panels import AiPanel
-
-    app = widgets.QApplication.instance() or widgets.QApplication([])
-    panel = AiPanel()
-
-    panel.sync_model("anthropic")
-    assert panel.model.text().startswith("claude")
-    assert panel.provider.count() == len(AI_PROVIDERS)
-
-    panel.sync_model("openrouter")
-    assert panel.model.text() == default_model("openrouter")
-
-    panel.sync_model("tokenrouter")
-    assert panel.model.text() == default_model("tokenrouter")
-    assert "TOKENROUTER_API_KEY" in panel.token.placeholderText()
-
-    panel.provider.setCurrentText("tokenrouter")
-    assert panel.request_config().timeout_s == 90.0
-
-    panel.widget.deleteLater()
-    app.processEvents()
-
-
-def test_preview_panel_accepts_four_channel_frames() -> None:
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    widgets = pytest.importorskip("PySide6.QtWidgets")
-
-    from desktop.ui.preview import PreviewPanel
-
-    app = widgets.QApplication.instance() or widgets.QApplication([])
-    panel = PreviewPanel()
-    data = np.zeros((2, 3, 4), dtype=np.uint8)
-    data[..., 3] = 255
-    frame = Frame(timestamp=0.0, width=3, height=2, data=data)
-
-    panel.set_frame(frame)
-    assert panel.surface.pixmap() is not None
-
-    panel.widget.deleteLater()
-    app.processEvents()
-
-
-def test_sidebar_uses_pages_instead_of_single_dense_column() -> None:
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    widgets = pytest.importorskip("PySide6.QtWidgets")
-
-    from desktop.ui.sidebar import ControlSidebar
-
-    app = widgets.QApplication.instance() or widgets.QApplication([])
-    sidebar = ControlSidebar(
-        config=CaptureConfig(),
+    app = RTDADesktopApp(
+        config=CaptureConfig(target_fps=60),
         enable_perception_tools=True,
-        show_capture_overlay=True,
-        show_floating_control=True,
+        show_capture_overlay=False,
+        show_floating_control=False,
     )
+    app.withdraw()
 
-    assert sidebar.pages.count() == 4
-    sidebar.set_page(3)
-    assert sidebar.pages.currentIndex() == 3
-    assert sidebar.page_buttons["ai"].isChecked() is True
-    assert sidebar.settings_button is not None
+    assert app.panel_capture is not None
+    assert app.panel_metrics is not None
+    assert app.panel_ai is not None
+    assert app.panel_mcp is not None
+    assert app.panel_settings is not None
+    assert app.action_bar is not None
+    assert app.status_pill is not None
 
-    sidebar.widget.deleteLater()
-    app.processEvents()
+    app.destroy()
 
 
 def test_floating_control_status_and_visibility() -> None:

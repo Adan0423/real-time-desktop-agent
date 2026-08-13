@@ -6,10 +6,14 @@ from desktop.ui.panels.mcp_panel import McpPanel
 from desktop.ui.panels.metrics_panel import MetricsPanel
 from desktop.ui.panels.settings_panel import SettingsPanel
 
+# Compatibility alias for unit tests
+TargetPanel = CapturePanel
+
 __all__ = [
     "AiPanel",
     "CapturePanel",
     "McpPanel",
     "MetricsPanel",
     "SettingsPanel",
+    "TargetPanel",
 ]

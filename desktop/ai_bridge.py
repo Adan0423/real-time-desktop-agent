@@ -2,14 +2,21 @@ from __future__ import annotations
 
 import base64
 from concurrent.futures import Future, ThreadPoolExecutor
+from dataclasses import dataclass
 
 from desktop.ai.client import AIClient, AIClientConfig
 from rtda.capture.frame import Frame
 from rtda.capture.interface import CaptureStats
 
 
+@dataclass
+class DesktopAiResult:
+    text: str | None = None
+    error: str | None = None
+
+
 class AIRequestRunner:
-    """Runs provider calls away from the Qt event loop."""
+    """Runs provider calls away from the main event loop."""
 
     def __init__(self) -> None:
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="rtda-ai")
@@ -31,6 +38,43 @@ class AIRequestRunner:
 
     def shutdown(self) -> None:
         self._executor.shutdown(wait=False, cancel_futures=True)
+
+
+class DesktopAiRunner:
+    """Async AI runner wrapper for GUI integration."""
+
+    def __init__(self) -> None:
+        self._runner = AIRequestRunner()
+        self._latest_result: DesktopAiResult | None = None
+
+    @property
+    def busy(self) -> bool:
+        return self._runner.busy
+
+    def submit(self, config: AIClientConfig, prompt: str, system: str, frame: Frame | None) -> None:
+        self._latest_result = None
+        self._runner.submit(config, prompt, system, frame)
+
+    def has_result(self) -> bool:
+        if self._latest_result is not None:
+            return True
+        try:
+            res = self._runner.pop_result()
+            if res is not None:
+                self._latest_result = DesktopAiResult(text=res)
+                return True
+        except Exception as exc:
+            self._latest_result = DesktopAiResult(error=str(exc))
+            return True
+        return False
+
+    def take_result(self) -> DesktopAiResult:
+        res = self._latest_result or DesktopAiResult(text="")
+        self._latest_result = None
+        return res
+
+    def shutdown(self) -> None:
+        self._runner.shutdown()
 
 
 def build_ai_system_prompt(
