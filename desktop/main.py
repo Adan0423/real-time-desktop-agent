@@ -93,10 +93,6 @@ def run_gui(
     show_capture_overlay: bool = True,
     show_floating_control: bool = True,
 ) -> int:
-    # Prevent Windows Qt DPI awareness conflict warning
-    os.environ.setdefault("QT_LOGGING_RULES", "qt.qpa.window.warning=false")
-    os.environ.setdefault("QT_ENABLE_HIGHDPI_SCALING", "1")
-
     # Set explicit AppUserModelID so Windows Taskbar displays the app icon
     if sys.platform == "win32":
         try:
@@ -106,12 +102,28 @@ def run_gui(
             pass
 
     try:
+        from desktop.ctk_dashboard import run_ctk_gui
+        return run_ctk_gui(
+            config=config,
+            enable_perception_tools=enable_perception_tools,
+            show_capture_overlay=show_capture_overlay,
+            show_floating_control=show_floating_control,
+        )
+    except Exception as ctk_err:
+        # Fallback to PySide6 GUI if CustomTkinter fails
+        pass
+
+    # Prevent Windows Qt DPI awareness conflict warning
+    os.environ.setdefault("QT_LOGGING_RULES", "qt.qpa.window.warning=false")
+    os.environ.setdefault("QT_ENABLE_HIGHDPI_SCALING", "1")
+
+    try:
         from PySide6.QtGui import QIcon
         from PySide6.QtWidgets import QApplication
     except ImportError as exc:
         raise RuntimeError(
-            "Missing optional dependency 'PySide6'. "
-            "Install with: python -m pip install -e .[gui]"
+            "Missing optional dependency 'PySide6' or 'customtkinter'. "
+            "Install with: python -m pip install customtkinter PySide6"
         ) from exc
 
     from desktop.dashboard import CaptureDashboard

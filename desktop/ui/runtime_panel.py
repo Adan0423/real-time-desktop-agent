@@ -12,9 +12,13 @@ class ActionBar:
         from PySide6.QtWidgets import QFrame, QGridLayout, QPushButton
 
         self.start_button = QPushButton("▶ Iniciar")
+        self.start_button.setObjectName("btnStart")
         self.pause_button = QPushButton("⏸ Pausar")
+        self.pause_button.setObjectName("btnPause")
         self.stop_button = QPushButton("⏹ Detener")
+        self.stop_button.setObjectName("btnStop")
         self.uia_button = QPushButton("🔍 UIA")
+        self.uia_button.setObjectName("btnUia")
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
         self.uia_button.setEnabled(enable_perception_tools)
