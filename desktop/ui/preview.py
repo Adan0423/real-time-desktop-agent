@@ -11,11 +11,11 @@ class PreviewPanel:
         from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QSizePolicy, QVBoxLayout
 
         self._qt = Qt
-        title = QLabel("Vista capturada")
+        title = QLabel("🖼️ Vista de Pantalla en Tiempo Real")
         title.setObjectName("panelTitle")
-        self.summary = QLabel("Esperando captura")
+        self.summary = QLabel("⏸️ Captura Inactiva")
         self.summary.setObjectName("mutedText")
-        self.surface = QLabel("Sin frame")
+        self.surface = QLabel("🎥 Presiona '▶ Iniciar' (F5) para previsualizar el escritorio en vivo")
         self.surface.setObjectName("previewSurface")
         self.surface.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.surface.setMinimumSize(640, 440)
@@ -40,8 +40,9 @@ class PreviewPanel:
 
     def clear(self) -> None:
         self.surface.clear()
-        self.surface.setText("Sin frame")
-        self.summary.setText("Esperando captura")
+        self.surface.setText("🎥 Presiona '▶ Iniciar' (F5) para previsualizar el escritorio en vivo")
+        self.summary.setText("⏸️ Captura Inactiva")
+
 
     def set_summary(self, *, running: bool, paused: bool, backend: str, resolution: str) -> None:
         if running and paused:

@@ -84,8 +84,22 @@ class CaptureDashboard:
         self.ai_timer.timeout.connect(self._poll_ai_result)
 
         self._connect_signals()
+        self._setup_shortcuts()
         self._load_monitors()
         self._update_runtime_status()
+
+    def _setup_shortcuts(self) -> None:
+        from PySide6.QtGui import QKeySequence
+        from PySide6.QtWidgets import QShortcut
+
+        QShortcut(QKeySequence("F5"), self.widget, self.start)
+        QShortcut(QKeySequence("Shift+F5"), self.widget, self.stop)
+        QShortcut(QKeySequence("Ctrl+1"), self.widget, lambda: self.sidebar.set_page(0))
+        QShortcut(QKeySequence("Ctrl+2"), self.widget, lambda: self.sidebar.set_page(1))
+        QShortcut(QKeySequence("Ctrl+3"), self.widget, lambda: self.sidebar.set_page(2))
+        QShortcut(QKeySequence("Ctrl+4"), self.widget, lambda: self.sidebar.set_page(3))
+        QShortcut(QKeySequence("Ctrl+5"), self.widget, lambda: self.sidebar.set_page(4))
+
 
     def show(self) -> None:
         self.widget.show()
