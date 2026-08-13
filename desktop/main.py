@@ -87,6 +87,10 @@ def run_gui(
     show_capture_overlay: bool = True,
     show_floating_control: bool = True,
 ) -> int:
+    # Prevent Windows Qt DPI awareness conflict warning
+    os.environ.setdefault("QT_LOGGING_RULES", "qt.qpa.window.warning=false")
+    os.environ.setdefault("QT_ENABLE_HIGHDPI_SCALING", "1")
+
     try:
         from PySide6.QtWidgets import QApplication
     except ImportError as exc:
@@ -99,6 +103,7 @@ def run_gui(
 
     app = QApplication(sys.argv)
     app.setQuitOnLastWindowClosed(not show_floating_control)
+
     dashboard = CaptureDashboard(
         config or CaptureConfig(),
         enable_perception_tools=enable_perception_tools,
