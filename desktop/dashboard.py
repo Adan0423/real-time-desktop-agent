@@ -89,10 +89,10 @@ class CaptureDashboard:
         self._update_runtime_status()
 
     def _setup_shortcuts(self) -> None:
-        from PySide6.QtGui import QKeySequence
-        from PySide6.QtWidgets import QShortcut
+        from PySide6.QtGui import QKeySequence, QShortcut
 
         QShortcut(QKeySequence("F5"), self.widget, self.start)
+
         QShortcut(QKeySequence("Shift+F5"), self.widget, self.stop)
         QShortcut(QKeySequence("Ctrl+1"), self.widget, lambda: self.sidebar.set_page(0))
         QShortcut(QKeySequence("Ctrl+2"), self.widget, lambda: self.sidebar.set_page(1))
@@ -103,8 +103,17 @@ class CaptureDashboard:
 
     def show(self) -> None:
         self.widget.show()
+        try:
+            from desktop.native import apply_windows_11_theme, enable_mica_effect
+            hwnd = int(self.widget.winId())
+            apply_windows_11_theme(hwnd, dark_mode=True, rounded_corners=True)
+            enable_mica_effect(hwnd)
+        except Exception:
+            pass
+
         if self._show_floating_control:
             self._floating.show()
+
 
     def quit(self) -> None:
         self.stop()

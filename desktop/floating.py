@@ -94,6 +94,12 @@ class RTDAFloatingControl:
             self._move_to_default_position()
         self.widget.show()
         self.widget.raise_()
+        try:
+            from desktop.native import apply_windows_11_theme
+            apply_windows_11_theme(int(self.widget.winId()), dark_mode=True, rounded_corners=True)
+        except Exception:
+            pass
+
 
     def hide(self) -> None:
         self.widget.hide()

@@ -64,7 +64,13 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Hide the always-on-top RTDA desktop control.",
     )
+    parser.add_argument(
+        "--web",
+        action="store_true",
+        help="Launch the Web Dashboard Control Surface from desktop/web in your browser.",
+    )
     return parser
+
 
 
 def config_from_args(args: argparse.Namespace) -> CaptureConfig:
@@ -114,9 +120,34 @@ def run_gui(
     return app.exec()
 
 
+def run_web_ui() -> int:
+    import webbrowser
+    from pathlib import Path
+    try:
+        import uvicorn
+        from fastapi import FastAPI
+        from fastapi.staticfiles import StaticFiles
+        from rtda.service.gateway import create_service_app
+    except ImportError as exc:
+        raise RuntimeError("FastAPI y uvicorn son necesarios para el modo web. Instálalos con: uv pip install fastapi uvicorn") from exc
+
+    app = create_service_app()
+    web_dir = Path(__file__).parent / "web"
+    if web_dir.exists():
+        app.mount("/app", StaticFiles(directory=str(web_dir), html=True), name="web_app")
+
+    url = "http://localhost:8000/app/"
+    print(f"🌐 Iniciando Servidor Web RTDA en {url} ...")
+    webbrowser.open(url)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.web:
+        return run_web_ui()
     config = config_from_args(args)
     return run_gui(
         config,
@@ -128,3 +159,4 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
