@@ -333,6 +333,7 @@ class RTDADesktopApp(ctk.CTk):
 
         cfg = AIClientConfig(provider=provider, api_key=token, model=model)
         frame = self._bridge.latest_frame()
+        stats = self._bridge.metrics()
         from desktop.ai_bridge import build_ai_system_prompt
 
         system_prompt = build_ai_system_prompt(backend="dxgi", stats=stats, frame=frame)

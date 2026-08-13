@@ -115,9 +115,9 @@ def test_system_prompt_describes_live_state_without_history() -> None:
         frame=None,
     )
 
-    assert "real-time desktop observation and control runtime" in prompt
-    assert "not saved history" in prompt
-    assert "no live visual observation available" in prompt
+    assert "DEBES RESPONDER SIEMPRE EN ESPAÑOL" in prompt
+    assert "RTDA" in prompt
+    assert "no hay observación visual en vivo disponible" in prompt
 
 
 # ── Desktop UI Panels & Widgets Tests ───────────────────────────────────────
