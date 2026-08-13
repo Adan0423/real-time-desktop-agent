@@ -10,6 +10,8 @@
 ![Windows](https://img.shields.io/badge/platform-Windows%2011-0078D4?logo=windows&logoColor=white)
 ![MCP](https://img.shields.io/badge/MCP-compatible-6f42c1)
 
+![Real-Time Desktop Agent (RTDA) - Desktop AgentOS](docs/assets/banner.jpg)
+
 > **Real-Time Desktop Agent (RTDA)** es un **Desktop AgentOS / Agent Runtime de tiempo real v3.0 para Windows 11**.
 > Transforma la interacción de la IA con la PC: pasa de ser un "bot rudimentario de screenshots" a ser una **capa de capacidades de escritorio persistente, event-driven y de ultra-baja latencia**.
 
