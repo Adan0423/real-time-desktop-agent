@@ -3,6 +3,7 @@ from __future__ import annotations
 from rtda.capture.interface import CaptureConfig, MonitorInfo
 
 from desktop.ui.ai_panel import AiPanel
+from desktop.ui.mcp_panel import McpPanel
 from desktop.ui.runtime_panel import ActionBar, RuntimePanel
 from desktop.ui.settings_panel import SettingsPanel
 from desktop.ui.target_panel import TargetPanel
@@ -25,6 +26,7 @@ class ControlSidebar:
         self.status = StatusPill("Extension local lista")
         self.target = TargetPanel(config=config)
         self.runtime = RuntimePanel(enable_perception_tools=enable_perception_tools)
+        self.mcp = McpPanel()
         self.ai = AiPanel()
         self.settings = SettingsPanel(
             enable_perception_tools=enable_perception_tools,
@@ -37,6 +39,7 @@ class ControlSidebar:
         self.pages.setObjectName("pageStack")
         self.pages.addWidget(self._page(self.target.widget))
         self.pages.addWidget(self._page(self.runtime.widget))
+        self.pages.addWidget(self.mcp.widget)
         self.pages.addWidget(self.ai.widget)
         self.pages.addWidget(self._page(self.settings.widget))
 
@@ -48,6 +51,7 @@ class ControlSidebar:
             (
                 ("capture", "📷 Captura"),
                 ("metrics", "📊 Métricas"),
+                ("mcp", "🔌 MCP"),
                 ("ai", "🧠 IA"),
                 ("settings", "⚙️ Config"),
             )
@@ -59,6 +63,7 @@ class ControlSidebar:
             nav.addWidget(button)
             self.page_buttons[key] = button
         self.set_page(0)
+
 
         layout = QVBoxLayout()
         layout.setContentsMargins(12, 12, 12, 12)
