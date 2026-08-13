@@ -42,14 +42,14 @@ class ControlSidebar:
 
         nav = QHBoxLayout()
         nav.setContentsMargins(0, 0, 0, 0)
-        nav.setSpacing(6)
+        nav.setSpacing(4)
         self.page_buttons: dict[str, QPushButton] = {}
         for index, (key, label) in enumerate(
             (
-                ("capture", "Captura"),
-                ("metrics", "Metricas"),
-                ("ai", "IA"),
-                ("settings", "Config"),
+                ("capture", "📷 Captura"),
+                ("metrics", "📊 Métricas"),
+                ("ai", "🧠 IA"),
+                ("settings", "⚙️ Config"),
             )
         ):
             button = QPushButton(label)
@@ -63,12 +63,13 @@ class ControlSidebar:
         layout = QVBoxLayout()
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(8)
-        layout.addWidget(make_label("RTDA", "appTitle"))
-        layout.addWidget(make_label("Desktop bridge", "mutedText"))
+        layout.addWidget(make_label("🌟 RTDA", "appTitle"))
+        layout.addWidget(make_label("🔌 Desktop Agent OS", "mutedText"))
         layout.addWidget(self.status.widget)
         layout.addLayout(nav)
         layout.addWidget(self.pages, 1)
         layout.addWidget(self.actions.widget)
+
 
         self.widget = QFrame()
         self.widget.setObjectName("sidebar")

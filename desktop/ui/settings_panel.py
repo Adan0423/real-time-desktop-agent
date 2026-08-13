@@ -15,12 +15,12 @@ class SettingsPanel:
     ) -> None:
         from PySide6.QtWidgets import QCheckBox, QVBoxLayout
 
-        self.border_enabled = QCheckBox("Marco verde")
+        self.border_enabled = QCheckBox("🟩 Mostrar marco verde de captura")
         self.border_enabled.setChecked(show_capture_overlay)
-        self.change_detection_enabled = QCheckBox("Detectar cambios")
+        self.change_detection_enabled = QCheckBox("🔍 Activar detección de cambios por ROI")
         self.change_detection_enabled.setChecked(False)
         self.change_detection_enabled.setEnabled(enable_perception_tools)
-        self.floating_enabled = QCheckBox("Control flotante")
+        self.floating_enabled = QCheckBox("🗔 Panel flotante en primer plano")
         self.floating_enabled.setChecked(show_floating_control)
 
         layout = QVBoxLayout()
@@ -31,7 +31,8 @@ class SettingsPanel:
         layout.addWidget(self.floating_enabled)
         layout.addStretch(1)
 
-        self.widget = SectionPanel("Configuracion", layout).widget
+        self.widget = SectionPanel("⚙️ Configuración Preferida", layout).widget
+
 
     def show_border(self) -> bool:
         return self.border_enabled.isChecked()

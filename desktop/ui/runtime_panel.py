@@ -11,10 +11,10 @@ class ActionBar:
     def __init__(self, *, enable_perception_tools: bool) -> None:
         from PySide6.QtWidgets import QFrame, QHBoxLayout, QPushButton
 
-        self.start_button = QPushButton("Iniciar")
-        self.pause_button = QPushButton("Pausar")
-        self.stop_button = QPushButton("Detener")
-        self.uia_button = QPushButton("UIA")
+        self.start_button = QPushButton("▶ Iniciar")
+        self.pause_button = QPushButton("⏸ Pausar")
+        self.stop_button = QPushButton("⏹ Detener")
+        self.uia_button = QPushButton("🔍 UIA")
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
         self.uia_button.setEnabled(enable_perception_tools)
@@ -35,7 +35,7 @@ class ActionBar:
         self.start_button.setEnabled(not running)
         self.pause_button.setEnabled(running)
         self.stop_button.setEnabled(running)
-        self.pause_button.setText("Reanudar" if paused else "Pausar")
+        self.pause_button.setText("▶ Reanudar" if paused else "⏸ Pausar")
 
 
 class RuntimePanel:
@@ -45,12 +45,12 @@ class RuntimePanel:
         from PySide6.QtWidgets import QGridLayout, QVBoxLayout
 
         self.metrics = {
-            "fps": MetricTile("FPS", "0.0"),
-            "resolution": MetricTile("Resolucion", "-"),
-            "latency": MetricTile("Latencia", "-"),
-            "drops": MetricTile("Drops", "0"),
-            "frames": MetricTile("Frames", "0"),
-            "errors": MetricTile("Errores", "0"),
+            "fps": MetricTile("⚡ FPS", "0.0"),
+            "resolution": MetricTile("📐 Resolución", "-"),
+            "latency": MetricTile("⏱️ Latencia", "-"),
+            "drops": MetricTile("⚠️ Drops", "0"),
+            "frames": MetricTile("🎞️ Frames", "0"),
+            "errors": MetricTile("❌ Errores", "0"),
         }
         metric_grid = QGridLayout()
         metric_grid.setHorizontalSpacing(6)
@@ -58,7 +58,7 @@ class RuntimePanel:
         for idx, metric in enumerate(self.metrics.values()):
             metric_grid.addWidget(metric.widget, idx // 2, idx % 2)
 
-        self.uia_label = make_label("UIA: sin inspeccion", "mutedText")
+        self.uia_label = make_label("🔍 UIA: sin inspección", "mutedText")
         self.uia_label.setWordWrap(True)
 
         layout = QVBoxLayout()
@@ -68,7 +68,8 @@ class RuntimePanel:
         if enable_perception_tools:
             layout.addWidget(self.uia_label)
 
-        self.widget = SectionPanel("Metricas", layout).widget
+        self.widget = SectionPanel("📊 Métricas de Ejecución", layout).widget
+
 
     def set_metrics(self, stats: CaptureStats) -> str:
         resolution = "-"

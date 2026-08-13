@@ -1,10 +1,44 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
+from pathlib import Path
+
+_SRC_DIR = str(Path(__file__).resolve().parent.parent / "src")
+if _SRC_DIR not in sys.path:
+    sys.path.insert(0, _SRC_DIR)
+
+
+def load_dotenv_if_present() -> None:
+    """Load key-value pairs from .env if present in root or working directory."""
+    env_paths = [
+        Path.cwd() / ".env",
+        Path(__file__).resolve().parent.parent / ".env",
+    ]
+    for env_path in env_paths:
+        if env_path.exists():
+            try:
+                for line in env_path.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip().strip("'\"")
+                    if k and v and k not in os.environ:
+                        os.environ[k] = v
+                break
+            except Exception:
+                pass
+
+
+load_dotenv_if_present()
 
 from rtda.capture.interface import CaptureConfig
 from rtda.capture.region import Region
+
+
 
 
 def build_parser() -> argparse.ArgumentParser:

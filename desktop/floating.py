@@ -44,11 +44,11 @@ class RTDAFloatingControl:
         self.metrics = QLabel("0.0 FPS | - | drop 0")
         self.metrics.setObjectName("floatingMetrics")
 
-        self.open_button = _button("Open", on_open)
-        self.run_button = _button("Run", on_start)
-        self.pause_button = _button("Pause", on_pause)
-        self.stop_button = _button("Stop", on_stop)
-        self.quit_button = _button("Quit", on_quit)
+        self.open_button = _button("🗔", on_open)
+        self.run_button = _button("▶", on_start)
+        self.pause_button = _button("⏸", on_pause)
+        self.stop_button = _button("⏹", on_stop)
+        self.quit_button = _button("❌", on_quit)
 
         copy = QVBoxLayout()
         copy.setContentsMargins(0, 0, 0, 0)
@@ -115,22 +115,23 @@ class RTDAFloatingControl:
         self._running = running
         self._paused = paused
         if running and paused:
-            label = "Paused"
+            label = "Pausado"
             tone = "paused"
         elif running:
-            label = "Active"
+            label = "Activo"
             tone = "active"
         else:
-            label = "Idle"
+            label = "Listo"
             tone = "idle"
         latency = "-" if latency_ms is None else f"{latency_ms:.1f} ms"
         self.status.setText(f"{label} - local MCP")
         self.metrics.setText(f"{fps:.1f} FPS | {resolution} | {latency} | drop {dropped}")
-        self.pause_button.setText("Resume" if paused else "Pause")
+        self.pause_button.setText("▶" if paused else "⏸")
         self.pause_button.setEnabled(running)
         self.stop_button.setEnabled(running)
         self.run_button.setEnabled(not running)
         self.glyph.widget.set_tone(tone)
+
 
     def _move_to_default_position(self) -> None:
         from PySide6.QtWidgets import QApplication

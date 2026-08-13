@@ -52,14 +52,15 @@ class TargetPanel:
         fields.setVerticalSpacing(8)
         for row, (label, widget) in enumerate(
             (
-                ("Monitor", self.monitor_combo),
-                ("Backend", self.backend_combo),
-                ("FPS", self.fps_spin),
-                ("Ventana", self.window_title),
+                ("🖥️ Monitor", self.monitor_combo),
+                ("⚙️ Backend", self.backend_combo),
+                ("⚡ FPS Target", self.fps_spin),
+                ("🗔 Ventana", self.window_title),
             )
         ):
             fields.addWidget(make_label(label, "fieldLabel"), row, 0)
             fields.addWidget(widget, row, 1)
+        self.region_enabled.setText("📐 Región de Pantalla")
         fields.addWidget(self.region_enabled, 4, 1)
 
         region = QGridLayout()
@@ -67,29 +68,31 @@ class TargetPanel:
         region.setVerticalSpacing(6)
         for idx, (label, widget) in enumerate(
             (
-                ("L", self.left_spin),
-                ("T", self.top_spin),
-                ("R", self.right_spin),
-                ("B", self.bottom_spin),
+                ("Izquierda (L)", self.left_spin),
+                ("Arriba (T)", self.top_spin),
+                ("Derecha (R)", self.right_spin),
+                ("Abajo (B)", self.bottom_spin),
             )
         ):
             region.addWidget(make_label(label, "fieldLabel"), idx // 2, (idx % 2) * 2)
             region.addWidget(widget, idx // 2, (idx % 2) * 2 + 1)
+
         self._region_container = QFrame()
         self._region_container.setObjectName("inlineRegion")
         self._region_container.setLayout(region)
         fields.addWidget(self._region_container, 5, 0, 1, 2)
 
-        self.widget = SectionPanel("Objetivo", fields).widget
+        self.widget = SectionPanel("🎥 Objetivo de Captura", fields).widget
         self._set_region_controls_visible(self.region_enabled.isChecked())
 
     def set_monitors(self, monitors: list[MonitorInfo]) -> None:
         self.monitor_combo.clear()
         if not monitors:
-            self.monitor_combo.addItem("0: monitor principal")
+            self.monitor_combo.addItem("🖥️ 0: Monitor principal")
             return
         for monitor in monitors:
-            self.monitor_combo.addItem(monitor.label)
+            self.monitor_combo.addItem(f"🖥️ {monitor.label}")
+
 
     def selection(self) -> TargetSelection:
         region = None

@@ -5,7 +5,7 @@ DASHBOARD_STYLE = """
 QWidget#rtdaRoot {
     background: #090b0f;
     color: #edf3f8;
-    font-family: "Segoe UI";
+    font-family: "Segoe UI", system-ui, sans-serif;
     font-size: 12px;
 }
 QFrame#sidebar {
@@ -18,12 +18,12 @@ QFrame#previewPanel {
 QFrame#sectionPanel {
     background: #11161d;
     border: 1px solid #283442;
-    border-radius: 7px;
+    border-radius: 8px;
 }
 QFrame#actionBar {
     background: #0f151d;
     border: 1px solid #273240;
-    border-radius: 7px;
+    border-radius: 8px;
 }
 QFrame#inlineRegion {
     background: transparent;
@@ -36,8 +36,9 @@ QFrame#metricTile {
 }
 QLabel#appTitle {
     color: #ffffff;
-    font-size: 18px;
+    font-size: 19px;
     font-weight: 800;
+    letter-spacing: 0.5px;
 }
 QLabel#sectionTitle,
 QLabel#panelTitle {
@@ -60,52 +61,58 @@ QLabel#statusPill {
     color: #b8c4d6;
     border: 1px solid #303b49;
     border-radius: 6px;
-    padding: 6px 8px;
+    padding: 6px 10px;
+    font-weight: 600;
 }
 QLabel#statusPill[tone="active"] {
     color: #39d98a;
     border-color: #238a5d;
+    background: #0d281e;
 }
 QLabel#statusPill[tone="paused"] {
     color: #ffb24a;
     border-color: #9d6722;
+    background: #261b0c;
 }
 QLabel#previewSurface {
     background: #010305;
     color: #c9d6e6;
     border: 1px solid #2a3543;
-    border-radius: 7px;
+    border-radius: 8px;
 }
 QPushButton#navButton {
     background: #11161d;
     color: #9eaaba;
     border: 1px solid #283442;
     border-radius: 6px;
-    min-height: 24px;
-    padding: 4px 8px;
+    min-height: 26px;
+    padding: 4px 6px;
+    font-weight: 600;
 }
 QPushButton#navButton:checked {
     color: #ffffff;
     border-color: #39d98a;
-    background: #13211c;
+    background: #13271f;
 }
 QPushButton#navButton:hover {
     border-color: #39d98a;
+    color: #ffffff;
 }
 QPushButton {
     background: #171f2a;
     color: #edf5ff;
     border: 1px solid #334258;
     border-radius: 6px;
-    min-height: 24px;
-    padding: 5px 9px;
+    min-height: 26px;
+    padding: 5px 11px;
+    font-weight: 600;
 }
 QPushButton:hover {
     border-color: #39d98a;
-    background: #1d2835;
+    background: #1e2c3c;
 }
 QPushButton:pressed {
-    background: #243242;
+    background: #25374c;
 }
 QPushButton:disabled {
     color: #5e6b78;
@@ -119,9 +126,9 @@ QTextEdit {
     background: #070b10;
     color: #ffffff;
     border: 1px solid #2a3646;
-    border-radius: 5px;
-    min-height: 24px;
-    padding: 4px 7px;
+    border-radius: 6px;
+    min-height: 26px;
+    padding: 4px 8px;
     selection-background-color: #276749;
 }
 QTextEdit {
@@ -135,17 +142,18 @@ QTextEdit:focus {
 }
 QCheckBox {
     color: #edf3f8;
-    spacing: 6px;
+    spacing: 8px;
 }
 QCheckBox::indicator {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
     border-radius: 4px;
     border: 1px solid #506278;
     background: #0a0f16;
 }
 QCheckBox::indicator:checked {
-    background: #ffb24a;
-    border-color: #ffb24a;
+    background: #39d98a;
+    border-color: #39d98a;
 }
 """
+

@@ -47,7 +47,7 @@ class CaptureDashboard:
 
         self.widget = DashboardWindow(self)
         self.widget.setObjectName("rtdaRoot")
-        self.widget.setWindowTitle("RTDA Desktop Control Surface")
+        self.widget.setWindowTitle("🌟 RTDA Desktop Control Surface")
         self.widget.resize(1060, 660)
 
         self.sidebar = ControlSidebar(
